@@ -1,0 +1,89 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.main-content {
+  padding-top: 64px;
+  min-height: calc(100vh - 64px);
+  transition: padding-left 0.3s ease;
+}
+
+.main-content.with-sidebar {
+  padding-left: 266px;
+}
+
+.main-content.with-sidebar.sidebar-collapsed {
+  padding-left: 16px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .main-content.with-sidebar {
+    padding-left: 16px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-content.with-sidebar {
+    padding-left: 220px;
+  }
+}
+
+/* Auth sayfaları için özel stil */
+.auth-page .main-content {
+  padding-left: 0 !important;
+}
+
+.placeholder-content {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text);
+}
+
+.placeholder-content h2 {
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.placeholder-content p {
+  color: var(--input-text);
+}
