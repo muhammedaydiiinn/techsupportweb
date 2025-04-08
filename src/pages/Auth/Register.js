@@ -11,8 +11,8 @@ import {
   faCheckCircle,
   faUser
 } from '@fortawesome/free-solid-svg-icons';
-import { authService } from '../api';
-import '../styles/auth.css';
+import { authService } from '../../api';
+import '../../styles/auth.css';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -203,4 +203,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Register; 

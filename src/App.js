@@ -3,11 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header/Header';
 import Sidebar from './components/Sidebar/Sidebar';
-import Login from './Login/Login';
-import Register from './Register/Register';
-import ForgotPassword from './ForgotPassword/ForgotPassword';
-import ResetPassword from './ResetPassword/ResetPassword';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
 import Dashboard from './pages/Dashboard'; // Ana sayfa komponenti
+import CreateTicket from './pages/Tickets/CreateTicket';
 import './App.css';
 
 // Giriş yapmış kullanıcıları auth sayfalarından koruma
@@ -80,6 +81,11 @@ const AppContent = () => {
           <Route path="/dashboard" element={
             <PrivateRoute>
               <Dashboard />
+            </PrivateRoute>
+          } />
+          <Route path="/tickets/create" element={
+            <PrivateRoute>
+              <CreateTicket />
             </PrivateRoute>
           } />
 

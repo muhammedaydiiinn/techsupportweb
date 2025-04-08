@@ -5,10 +5,10 @@ import {
   faEnvelope, 
   faSpinner,
   faExclamationCircle,
-  faCheckCircle 
+  faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { authService } from '../api';
-import '../styles/auth.css';
+import { authService } from '../../api';
+import '../../styles/auth.css';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -16,34 +16,29 @@ const ForgotPassword = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const validateForm = () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     if (!email.trim()) {
-      setError('Email adresi boş olamaz.');
-      return false;
+      setError('Email adresinizi giriniz.');
+      return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('Geçerli bir email adresi giriniz.');
-      return false;
+      return;
     }
-
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
 
     setLoading(true);
     setError('');
     setSuccess(false);
 
     try {
-      const response = await authService.forgotPassword(email);
+      const response = await authService.forgotPassword(email.trim());
+      
       if (response.success) {
         setSuccess(true);
-        setEmail('');
       } else {
         setError(response.message);
       }
@@ -57,8 +52,10 @@ const ForgotPassword = () => {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h1 className="auth-title">Şifre Sıfırlama</h1>
-        <p className="auth-subtitle">Email adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.</p>
+        <h1 className="auth-title">Şifremi Unuttum</h1>
+        <p className="auth-subtitle">
+          Email adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.
+        </p>
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-container">

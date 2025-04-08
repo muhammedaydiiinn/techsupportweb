@@ -9,9 +9,9 @@ import {
   faSpinner,
   faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { authService } from '../api';
-import { useAuth } from '../context/AuthContext';
-import '../styles/auth.css';
+import { authService } from '../../api';
+import { useAuth } from '../../context/AuthContext';
+import '../../styles/auth.css';
 
 const Login = () => {
   const navigate = useNavigate();

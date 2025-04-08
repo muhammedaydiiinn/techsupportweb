@@ -1,59 +1,59 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faLock, 
-  faEye, 
-  faEyeSlash, 
   faSpinner,
   faExclamationCircle,
-  faCheckCircle 
+  faCheckCircle,
+  faEye,
+  faEyeSlash
 } from '@fortawesome/free-solid-svg-icons';
-import { authService } from '../api';
-import '../styles/auth.css';
+import { authService } from '../../api';
+import '../../styles/auth.css';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-
+  const location = useLocation();
   const [formData, setFormData] = useState({
-    new_password: '',
-    new_password_confirm: ''
+    password: '',
+    confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  if (!token) {
-    return (
-      <div className="auth-page">
-        <div className="auth-container">
-          <div className="error-message">
-            <FontAwesomeIcon icon={faExclamationCircle} />
-            <span>Geçersiz veya eksik şifre sıfırlama bağlantısı.</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const validateForm = () => {
+    if (!formData.password || !formData.confirmPassword) {
+      setError('Tüm alanları doldurunuz.');
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Şifre en az 6 karakter olmalıdır.');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Şifreler eşleşmiyor.');
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.new_password || !formData.new_password_confirm) {
-      setError('Tüm alanları doldurunuz.');
+    
+    if (!validateForm()) {
       return;
     }
 
-    if (formData.new_password.length < 8) {
-      setError('Şifre en az 8 karakter olmalıdır.');
-      return;
-    }
-
-    if (formData.new_password !== formData.new_password_confirm) {
-      setError('Şifreler eşleşmiyor.');
+    const token = new URLSearchParams(location.search).get('token');
+    if (!token) {
+      setError('Geçersiz veya eksik token.');
       return;
     }
 
@@ -62,48 +62,54 @@ const ResetPassword = () => {
     setSuccess(false);
 
     try {
-      const response = await authService.resetPassword(
-        token,
-        formData.new_password,
-        formData.new_password_confirm
-      );
-
+      const response = await authService.resetPassword(token, formData.password);
+      
       if (response.success) {
         setSuccess(true);
         setTimeout(() => {
           navigate('/login');
-        }, 2000);
+        }, 3000);
       } else {
         setError(response.message);
       }
     } catch (err) {
-      console.error('Reset password error:', err);
       setError(err.message || 'Şifre sıfırlama işlemi başarısız oldu.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h1 className="auth-title">Yeni Şifre Oluştur</h1>
-        <p className="auth-subtitle">Lütfen yeni şifrenizi belirleyin</p>
+        <h1 className="auth-title">Şifre Sıfırlama</h1>
+        <p className="auth-subtitle">
+          Yeni şifrenizi belirleyin.
+        </p>
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-container">
             <FontAwesomeIcon icon={faLock} className="input-icon" />
             <input
               type={showPassword ? "text" : "password"}
-              value={formData.new_password}
-              onChange={(e) => setFormData({...formData, new_password: e.target.value})}
-              placeholder="Yeni şifre"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Yeni şifreniz"
               className="input-field"
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
               className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
             >
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
             </button>
@@ -112,32 +118,33 @@ const ResetPassword = () => {
           <div className="input-container">
             <FontAwesomeIcon icon={faLock} className="input-icon" />
             <input
-              type={showPassword ? "text" : "password"}
-              value={formData.new_password_confirm}
-              onChange={(e) => setFormData({...formData, new_password_confirm: e.target.value})}
-              placeholder="Yeni şifre tekrar"
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Yeni şifrenizi tekrar girin"
               className="input-field"
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
               className="password-toggle"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+              <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
             </button>
           </div>
 
           {error && (
             <div className="error-message">
               <FontAwesomeIcon icon={faExclamationCircle} />
-              <span>{error}</span>
+              {error}
             </div>
           )}
-
+          
           {success && (
             <div className="success-message">
               <FontAwesomeIcon icon={faCheckCircle} />
-              <span>Şifreniz başarıyla güncellendi! Yönlendiriliyorsunuz...</span>
+              Şifreniz başarıyla güncellendi. Giriş sayfasına yönlendiriliyorsunuz...
             </div>
           )}
 
@@ -155,6 +162,10 @@ const ResetPassword = () => {
               'Şifreyi Güncelle'
             )}
           </button>
+
+          <Link to="/login" className="auth-link">
+            Giriş sayfasına dön
+          </Link>
         </form>
       </div>
     </div>
