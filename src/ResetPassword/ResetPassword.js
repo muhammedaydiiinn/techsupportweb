@@ -9,7 +9,7 @@ import {
   faExclamationCircle,
   faCheckCircle 
 } from '@fortawesome/free-solid-svg-icons';
-import { auth } from '../api';
+import { authService } from '../api';
 import '../styles/auth.css';
 
 const ResetPassword = () => {
@@ -62,11 +62,20 @@ const ResetPassword = () => {
     setSuccess(false);
 
     try {
-      await auth.resetPassword(token, formData.new_password, formData.new_password_confirm);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      const response = await authService.resetPassword(
+        token,
+        formData.new_password,
+        formData.new_password_confirm
+      );
+
+      if (response.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(response.message);
+      }
     } catch (err) {
       console.error('Reset password error:', err);
       setError(err.message || 'Şifre sıfırlama işlemi başarısız oldu.');

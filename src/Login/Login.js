@@ -9,7 +9,7 @@ import {
   faSpinner,
   faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { auth } from '../api';
+import { authService } from '../api';
 import { useAuth } from '../context/AuthContext';
 import '../styles/auth.css';
 
@@ -36,19 +36,19 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await auth.login({
-        email: formData.email.trim(),
-        password: formData.password
-      });
+      const response = await authService.login(
+        formData.email.trim(),
+        formData.password
+      );
 
-      if (response && response.access_token) {
+      if (response.success && response.data.access_token) {
         const userData = {
-          name: response.name || formData.email.split('@')[0],
-          surname: response.surname || '',
+          name: response.data.name || formData.email.split('@')[0],
+          surname: response.data.surname || '',
           email: formData.email,
         };
 
-        authLogin(userData, response.access_token);
+        authLogin(userData, response.data.access_token);
         
         navigate('/dashboard', { replace: true });
       }

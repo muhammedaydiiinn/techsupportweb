@@ -11,7 +11,7 @@ import {
   faCheckCircle,
   faUser
 } from '@fortawesome/free-solid-svg-icons';
-import { auth } from '../api';
+import { authService } from '../api';
 import '../styles/auth.css';
 
 const Register = () => {
@@ -62,11 +62,21 @@ const Register = () => {
     setSuccess(false);
 
     try {
-      await auth.register(formData);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      const response = await authService.register({
+        email: formData.email.trim(),
+        password: formData.password,
+        name: formData.name.trim(),
+        surname: formData.surname.trim()
+      });
+
+      if (response.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(response.message);
+      }
     } catch (err) {
       setError(err.message || 'Kayıt işlemi başarısız oldu.');
     } finally {

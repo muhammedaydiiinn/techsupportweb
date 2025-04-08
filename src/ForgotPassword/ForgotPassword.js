@@ -7,7 +7,7 @@ import {
   faExclamationCircle,
   faCheckCircle 
 } from '@fortawesome/free-solid-svg-icons';
-import { auth } from '../api';
+import { authService } from '../api';
 import '../styles/auth.css';
 
 const ForgotPassword = () => {
@@ -40,9 +40,13 @@ const ForgotPassword = () => {
     setSuccess(false);
 
     try {
-      await auth.forgotPassword(email);
-      setSuccess(true);
-      setEmail('');
+      const response = await authService.forgotPassword(email);
+      if (response.success) {
+        setSuccess(true);
+        setEmail('');
+      } else {
+        setError(response.message);
+      }
     } catch (err) {
       setError(err.message || 'Şifre sıfırlama işlemi başarısız oldu.');
     } finally {

@@ -1,150 +1,157 @@
 import axios from 'axios';
 
-// Axios instance oluştur ve baseURL'yi ayarla
+const API_URL = process.env.REACT_APP_API_URL;
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
 });
 
-// Request interceptor - token ekleme
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Request interceptor
+api.interceptors.request.use(
+  async (config) => {
+    if (config.url.startsWith('auth/')) {
+      config.url = `/${config.url}`;
+    }
+    
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => Promise.reject(error)
+);
 
-// Response interceptor - token yenileme ve hata yönetimi
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const errorData = {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.response?.data?.detail || error.message
+    };
+
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token');
-      window.location.href = '/login';
     }
-    return Promise.reject(error);
+    
+    return Promise.reject({
+      ...error,
+      api: errorData
+    });
   }
 );
 
-// Auth işlemleri
-export const auth = {
-  // Kayıt
+export const authService = {
+  login: async (email, password) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('username', email);
+      params.append('password', password);
+
+      const response = await axios({
+        method: 'post',
+        url: `${API_URL}/auth/login`,
+        data: params.toString(),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        timeout: 10000,
+      });
+
+      localStorage.setItem('access_token', response.data.access_token);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      const errorMessage = 
+        error.response?.data?.detail ||
+        (error.response?.status === 401 ? 'Geçersiz kullanıcı adı veya şifre' : 
+         error.message === 'Network Error' ? 'Sunucuya bağlanılamıyor' :
+         'Giriş yapılırken bir hata oluştu');
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data
+      };
+    }
+  },
+
   register: async (userData) => {
     try {
-      const response = await api.post('/api/v1/auth/register', userData);
-      return response.data;
+      const response = await api.post('/auth/register', userData);
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
-      throw error.response?.data || error.message;
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Kayıt işlemi başarısız oldu',
+        error: error.response?.data
+      };
     }
   },
 
-  // Giriş
-  login: async (credentials) => {
-    try {
-      const response = await api.post('/api/v1/auth/login', credentials);
-      localStorage.setItem('access_token', response.data.access_token);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  // Şifre sıfırlama isteği
   forgotPassword: async (email) => {
     try {
-      const response = await api.post('/api/v1/auth/forgot-password', { email });
-      return response.data;
+      const response = await api.post('/auth/forgot-password', { email });
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
-      throw error.response?.data || error.message;
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Şifre sıfırlama isteği başarısız oldu',
+        error: error.response?.data
+      };
     }
   },
 
-  // Yeni şifre belirleme
   resetPassword: async (token, newPassword, newPasswordConfirm) => {
     try {
-      const response = await api.post('/api/v1/auth/reset-password', {
+      const response = await api.post('/auth/reset-password', {
         token,
         new_password: newPassword,
-        new_password_confirm: newPasswordConfirm
+        new_password_confirm: newPasswordConfirm,
       });
-      return response.data;
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
-      throw error.response?.data || error.message;
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Şifre sıfırlama işlemi başarısız oldu',
+        error: error.response?.data
+      };
     }
   },
 
-  // Profil bilgilerini getir
   getProfile: async () => {
     try {
-      const response = await api.get('/api/v1/auth/me');
-      return response.data;
+      const response = await api.get('/auth/me');
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  }
-};
-
-// Admin işlemleri
-export const admin = {
-  // Kullanıcı oluştur
-  createUser: async (userData) => {
-    try {
-      const response = await api.post('/api/v1/auth/admin/users', userData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Profil bilgileri alınamadı',
+        error: error.response?.data
+      };
     }
   },
-
-  // Kullanıcıları listele
-  getUsers: async (skip = 0, limit = 10) => {
-    try {
-      const response = await api.get(`/api/v1/auth/admin/users?skip=${skip}&limit=${limit}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  // Tek kullanıcı görüntüle
-  getUser: async (userId) => {
-    try {
-      const response = await api.get(`/api/v1/auth/admin/users/${userId}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  // Kullanıcı güncelle
-  updateUser: async (userId, userData) => {
-    try {
-      const response = await api.put(`/api/v1/auth/admin/users/${userId}`, userData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  // Kullanıcı sil
-  deleteUser: async (userId) => {
-    try {
-      const response = await api.delete(`/api/v1/auth/admin/users/${userId}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  // API erişimini aç/kapat
-  toggleApiAccess: async (userId) => {
-    try {
-      const response = await api.post(`/api/v1/auth/toggle-api-access/${userId}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  }
 };
 
 export default api;
