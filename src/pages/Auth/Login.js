@@ -9,13 +9,12 @@ import {
   faSpinner,
   faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { authService } from '../../api';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/auth.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login: authLogin } = useAuth();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -36,21 +35,12 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await authService.login(
-        formData.email.trim(),
-        formData.password
-      );
-
-      if (response.success && response.data.access_token) {
-        const userData = {
-          name: response.data.name || formData.email.split('@')[0],
-          surname: response.data.surname || '',
-          email: formData.email,
-        };
-
-        authLogin(userData, response.data.access_token);
-        
+      const response = await login(formData.email.trim(), formData.password);
+      
+      if (response.success) {
         navigate('/dashboard', { replace: true });
+      } else {
+        setError(response.message || 'Giriş işlemi başarısız oldu.');
       }
     } catch (err) {
       console.error('Login error:', err);

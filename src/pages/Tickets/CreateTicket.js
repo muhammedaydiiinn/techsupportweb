@@ -40,7 +40,7 @@ const CreateTicket = () => {
       const response = await ticketService.createTicket(ticketData);
 
       if (!response.success) {
-        throw { api: { message: response.message || 'Ticket oluşturulamadı' } };
+        throw new Error(response.message || 'Ticket oluşturulamadı');
       }
 
       if (formData.attachments.length > 0) {

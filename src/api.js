@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8001/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -14,14 +14,19 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {
-    if (config.url.startsWith('auth/')) {
-      config.url = `/${config.url}`;
-    }
-    
     const token = localStorage.getItem('access_token');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // API URL'ini düzelt
+    if (!config.url.startsWith('http')) {
+      if (config.url.startsWith('/')) {
+        config.url = config.url.substring(1);
+      }
+    }
+
     return config;
   },
   error => Promise.reject(error)
@@ -31,16 +36,22 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+
+    // Token geçersiz olduğunda
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      localStorage.removeItem('access_token');
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
     const errorData = {
       status: error.response?.status,
       data: error.response?.data,
       message: error.response?.data?.detail || error.message
     };
 
-    if (error.response?.status === 401) {
-      localStorage.removeItem('access_token');
-    }
-    
     return Promise.reject({
       ...error,
       api: errorData
@@ -65,7 +76,10 @@ export const authService = {
         timeout: 10000,
       });
 
-      localStorage.setItem('access_token', response.data.access_token);
+      if (response.data.access_token) {
+        localStorage.setItem('access_token', response.data.access_token);
+      }
+
       return {
         success: true,
         data: response.data
@@ -155,41 +169,42 @@ export const authService = {
 };
 
 export const ticketService = {
-  createTicket: async (ticketData) => {
-    try {
-      const response = await api.post('/tickets/', ticketData);
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.detail || 'Ticket oluşturulurken bir hata oluştu',
-        error: error.response?.data
-      };
-    }
-  },
-
   getTickets: async (params = {}) => {
     try {
-      const response = await api.get('/tickets/', { params });
+      const queryParams = new URLSearchParams();
+      
+      // Sayfalama parametreleri
+      if (params.page !== undefined) queryParams.append('page', params.page);
+      if (params.per_page !== undefined) queryParams.append('per_page', params.per_page);
+      
+      // Filtreleme parametreleri
+      if (params.status) queryParams.append('status', params.status);
+      if (params.priority) queryParams.append('priority', params.priority);
+      if (params.category) queryParams.append('category', params.category);
+      
+      // Sıralama parametreleri
+      if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+      if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
+
+      const response = await api.get(`/tickets/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      console.error('Ticket fetch error:', error);
       return {
         success: false,
-        message: error.response?.data?.detail || 'Ticketlar alınırken bir hata oluştu',
-        error: error.response?.data
+        message: error.api?.message || 'Talepler yüklenirken bir hata oluştu',
+        error: error.api
       };
     }
   },
 
-  getTicketById: async (ticketId) => {
+  getTicketById: async (id) => {
     try {
-      const response = await api.get(`/tickets/${ticketId}`);
+      const response = await api.get(`tickets/${id}`);
       return {
         success: true,
         data: response.data
@@ -197,15 +212,15 @@ export const ticketService = {
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.detail || 'Ticket detayları alınırken bir hata oluştu',
-        error: error.response?.data
+        message: error.api?.message || 'Talep detayları yüklenirken bir hata oluştu',
+        error: error.api
       };
     }
   },
 
-  updateTicket: async (ticketId, ticketData) => {
+  createTicket: async (data) => {
     try {
-      const response = await api.put(`/tickets/${ticketId}`, ticketData);
+      const response = await api.post('tickets/', data);
       return {
         success: true,
         data: response.data
@@ -213,8 +228,40 @@ export const ticketService = {
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.detail || 'Ticket güncellenirken bir hata oluştu',
-        error: error.response?.data
+        message: error.api?.message || 'Talep oluşturulurken bir hata oluştu',
+        error: error.api
+      };
+    }
+  },
+
+  updateTicket: async (id, data) => {
+    try {
+      const response = await api.put(`tickets/${id}`, data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.api?.message || 'Talep güncellenirken bir hata oluştu',
+        error: error.api
+      };
+    }
+  },
+
+  deleteTicket: async (id) => {
+    try {
+      const response = await api.delete(`tickets/${id}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.api?.message || 'Talep silinirken bir hata oluştu',
+        error: error.api
       };
     }
   },
@@ -230,41 +277,6 @@ export const ticketService = {
       return {
         success: false,
         message: error.response?.data?.detail || 'Ticket durumu güncellenirken bir hata oluştu',
-        error: error.response?.data
-      };
-    }
-  },
-
-  assignTicket: async (ticketId, userId) => {
-    try {
-      const response = await api.put('/tickets/admin/assign', {
-        ticket_id: ticketId,
-        user_id: userId
-      });
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.detail || 'Ticket atanırken bir hata oluştu',
-        error: error.response?.data
-      };
-    }
-  },
-
-  deleteTicket: async (ticketId) => {
-    try {
-      const response = await api.delete(`/tickets/admin/tickets/${ticketId}`);
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.detail || 'Ticket silinirken bir hata oluştu',
         error: error.response?.data
       };
     }
@@ -298,7 +310,225 @@ export const ticketService = {
         error: error.response?.data
       };
     }
+  },
+
+  // İstatistik Endpoint'leri
+  getStats: async () => {
+    try {
+      const response = await api.get('/tickets/stats/');
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'İstatistikler alınırken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  getDepartmentStats: async () => {
+    try {
+      const response = await api.get('/tickets/stats/department');
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Departman istatistikleri alınırken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  getUserStats: async () => {
+    try {
+      const response = await api.get('/tickets/stats/user');
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Kullanıcı istatistikleri alınırken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
   }
+};
+
+export const adminService = {
+  assignTicket: async (ticketId, userId) => {
+    try {
+      const response = await api.post(`tickets/${ticketId}/assign`, { user_id: userId });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.api?.message || 'Talep atama işlemi başarısız oldu',
+        error: error.api
+      };
+    }
+  },
+
+  getUsers: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.skip !== undefined) queryParams.append('skip', params.skip);
+      if (params.limit !== undefined) queryParams.append('limit', params.limit);
+      
+      const response = await api.get(`users/?${queryParams.toString()}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.api?.message || 'Kullanıcılar yüklenirken bir hata oluştu',
+        error: error.api
+      };
+    }
+  },
+
+  // Ticket Admin İşlemleri
+  deleteTicket: async (ticketId) => {
+    try {
+      const response = await api.delete(`/tickets/admin/tickets/${ticketId}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticket silme işlemi başarısız oldu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Departman Yönetimi
+  getDepartments: async (params = {}) => {
+    try {
+      const response = await api.get('/departments/', { params });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Departmanlar alınırken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  createDepartment: async (departmentData) => {
+    try {
+      const response = await api.post('/departments/', departmentData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Departman oluşturulurken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  updateDepartment: async (departmentId, departmentData) => {
+    try {
+      const response = await api.put(`/departments/${departmentId}`, departmentData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Departman güncellenirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  deleteDepartment: async (departmentId) => {
+    try {
+      const response = await api.delete(`/departments/${departmentId}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Departman silinirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Kullanıcı Yönetimi
+  updateUserRole: async (userId, role) => {
+    try {
+      const response = await api.put(`/users/${userId}/role`, { role });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Kullanıcı rolü güncellenirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  updateUserDepartment: async (userId, departmentId) => {
+    try {
+      const response = await api.put(`/users/${userId}/department`, { department_id: departmentId });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Kullanıcı departmanı güncellenirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  updateUserStatus: async (userId, status) => {
+    try {
+      const response = await api.put(`/users/${userId}/status`, { status });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Kullanıcı durumu güncellenirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
 };
 
 export default api;

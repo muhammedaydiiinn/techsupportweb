@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header/Header';
 import Sidebar from './components/Sidebar/Sidebar';
 import Login from './pages/Auth/Login';
@@ -9,6 +9,8 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
 import Dashboard from './pages/Dashboard'; // Ana sayfa komponenti
 import CreateTicket from './pages/Tickets/CreateTicket';
+import TicketList from './pages/Tickets/TicketList';
+import TicketDetail from './pages/Tickets/TicketDetail';
 import './App.css';
 
 // Giriş yapmış kullanıcıları auth sayfalarından koruma
@@ -88,6 +90,16 @@ const AppContent = () => {
               <CreateTicket />
             </PrivateRoute>
           } />
+          <Route path="/tickets/list" element={
+            <PrivateRoute>
+              <TicketList />
+            </PrivateRoute>
+          } />
+          <Route path="/tickets/:ticketId" element={
+            <PrivateRoute>
+              <TicketDetail />
+            </PrivateRoute>
+          } />
 
           {/* Root yönlendirmesi */}
           <Route path="/" element={
@@ -101,12 +113,13 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <Router> {/* Router en dışta olacak */}
+      <AuthProvider>
         <AppContent />
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 };
+
 
 export default App;

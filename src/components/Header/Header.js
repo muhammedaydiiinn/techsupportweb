@@ -10,7 +10,7 @@ import {
   faUserPlus,
   faBars
 } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import './Header.css';
 
 const Header = ({ onToggleSidebar, isSidebarOpen }) => {

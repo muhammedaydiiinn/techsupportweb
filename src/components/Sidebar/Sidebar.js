@@ -8,28 +8,42 @@ import {
   faChartLine,
   faCog,
   faPlus,
+  faList,
   faChevronDown,
   faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../../contexts/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen }) => {
+  const { user } = useAuth();
   const [isTicketsOpen, setIsTicketsOpen] = useState(false);
 
-  const menuItems = [
+  // Admin ve normal kullanıcı için ortak menü öğeleri
+  const commonMenuItems = [
     { path: '/dashboard', icon: faHome, label: 'Dashboard' },
     { 
       path: '/tickets', 
       icon: faTicket, 
       label: 'Talepler',
       submenu: [
+        { path: '/tickets/list', icon: faList, label: 'Taleplerim' },
         { path: '/tickets/create', icon: faPlus, label: 'Yeni Talep' }
       ]
-    },
+    }
+  ];
+
+  // Sadece admin için ek menü öğeleri
+  const adminMenuItems = [
     { path: '/users', icon: faUsers, label: 'Kullanıcılar' },
     { path: '/reports', icon: faChartLine, label: 'Raporlar' },
     { path: '/settings', icon: faCog, label: 'Ayarlar' }
   ];
+
+  // Kullanıcı rolüne göre menü öğelerini birleştir
+  const menuItems = user?.role === 'ADMIN' 
+    ? [...commonMenuItems, ...adminMenuItems]
+    : commonMenuItems;
 
   const toggleSubmenu = (e, item) => {
     if (item.submenu) {
@@ -42,7 +56,7 @@ const Sidebar = ({ isOpen }) => {
     <div className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
       <nav className="sidebar-nav">
         {menuItems.map((item, index) => (
-          <div key={index}>
+          <div key={index} className="menu-item">
             <NavLink
               to={item.path}
               className={({ isActive }) => 
