@@ -154,4 +154,151 @@ export const authService = {
   },
 };
 
+export const ticketService = {
+  createTicket: async (ticketData) => {
+    try {
+      const response = await api.post('/tickets/', ticketData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticket oluşturulurken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  getTickets: async (params = {}) => {
+    try {
+      const response = await api.get('/tickets/', { params });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticketlar alınırken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  getTicketById: async (ticketId) => {
+    try {
+      const response = await api.get(`/tickets/${ticketId}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticket detayları alınırken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  updateTicket: async (ticketId, ticketData) => {
+    try {
+      const response = await api.put(`/tickets/${ticketId}`, ticketData);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticket güncellenirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  updateTicketStatus: async (ticketId, status) => {
+    try {
+      const response = await api.put(`/tickets/${ticketId}/status`, { status });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticket durumu güncellenirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  assignTicket: async (ticketId, userId) => {
+    try {
+      const response = await api.put('/tickets/admin/assign', {
+        ticket_id: ticketId,
+        user_id: userId
+      });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticket atanırken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  deleteTicket: async (ticketId) => {
+    try {
+      const response = await api.delete(`/tickets/admin/tickets/${ticketId}`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Ticket silinirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  },
+
+  uploadAttachment: async (ticketId, file, description = '') => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (description) {
+        formData.append('description', description);
+      }
+
+      const response = await api.post(
+        `/tickets/${ticketId}/attachments`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.detail || 'Dosya yüklenirken bir hata oluştu',
+        error: error.response?.data
+      };
+    }
+  }
+};
+
 export default api;
