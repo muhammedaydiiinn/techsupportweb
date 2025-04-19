@@ -365,8 +365,9 @@ export const ticketService = {
 export const adminService = {
   assignTicket: async (ticket_id, user_id) => {
     try {
-      const response = await api.post(`/tickets/admin/tickets/${ticket_id}/assign`, {
-        user_id
+      const response = await api.put(`/tickets/admin/tickets/${ticket_id}/assign`, {
+        user_id : user_id,
+        ticket_id : ticket_id
       });
       return {
         success: true,

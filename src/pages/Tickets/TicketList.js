@@ -57,6 +57,7 @@ const TicketList = () => {
       selector: (row, index) => `TKT-${String(index + 1 + (page - 1) * perPage).padStart(5, '0')}`,
       sortable: true,
       width: '120px',
+      sortField: 'id'
     },
     {
       name: 'Başlık',
@@ -173,12 +174,13 @@ const TicketList = () => {
       const response = await ticketService.getTickets({
         page: page,
         per_page: perPage,
+        sort_by: 'id',
+        sort_direction: 'asc'
       });
 
-      console.log('Ticket response:', response); // Debug için
-
       if (response.success) {
-        setTickets(response.data || []);
+        const sortedTickets = response.data.sort((a, b) => a.id - b.id);
+        setTickets(sortedTickets || []);
         setTotalRows(response.data?.length || 0);
       } else {
         toast.error(response.message);
@@ -360,6 +362,9 @@ const TicketList = () => {
         paginationTotalRows={totalRows}
         onChangeRowsPerPage={handlePerRowsChange}
         onChangePage={handlePageChange}
+        defaultSortFieldId="id"
+        defaultSortAsc={true}
+        sortServer={false}
         noDataComponent={
           <div className="no-data">
             <p>Henüz talep bulunmuyor</p>

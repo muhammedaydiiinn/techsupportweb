@@ -22,4 +22,19 @@ export const deleteTicket = async (ticketId) => {
       message: error.response?.data?.message || 'Talep silinirken bir hata oluştu'
     };
   }
+};
+
+export const assignTicket = async (ticketId, userId) => {
+  try {
+    const response = await api.put(`/tickets/admin/tickets/${ticketId}/assign`, {
+      ticket_id: ticketId,
+      user_id: userId
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Talep atama işlemi başarısız oldu'
+    };
+  }
 }; 

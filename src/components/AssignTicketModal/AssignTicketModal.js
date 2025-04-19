@@ -15,7 +15,6 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
   const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
-    // Admin değilse modalı kapat
     if (isOpen && (!user || user.role !== 'admin')) {
       toast.error('Bu işlem için admin yetkisi gerekiyor');
       onClose();
@@ -32,6 +31,9 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
 
         if (ticketResponse.success) {
           setTicket(ticketResponse.data);
+          if (ticketResponse.data.assigned_to) {
+            setSelectedUserId(ticketResponse.data.assigned_to.id);
+          }
         } else {
           toast.error(ticketResponse.message || 'Talep detayları alınamadı');
         }
@@ -50,7 +52,6 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
 
     if (isOpen && user?.role === 'admin') {
       fetchData();
-      setSelectedUserId('');
     }
   }, [isOpen, user, ticketId, onClose]);
 
@@ -83,7 +84,6 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
     }
   };
 
-  // Admin değilse modalı gösterme
   if (!isOpen || !user || user.role !== 'admin') return null;
 
   return (

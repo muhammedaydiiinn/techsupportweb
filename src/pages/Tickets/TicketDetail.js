@@ -14,6 +14,7 @@ import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './TicketDetail.css';
+import AssignTicketModal from '../../components/AssignTicketModal/AssignTicketModal';
 
 const TicketDetail = () => {
   const { ticketId } = useParams();
@@ -23,6 +24,7 @@ const TicketDetail = () => {
   const [department, setDepartment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
   const fetchDepartment = useCallback(async (departmentId) => {
     try {
@@ -75,21 +77,12 @@ const TicketDetail = () => {
     }
   };
 
-  const handleAssign = async () => {
-    const userId = prompt('Atanacak kullanıcı ID:');
-    if (userId) {
-      try {
-        const response = await adminService.assignTicket(ticketId, userId);
-        if (response.success) {
-          toast.success('Talep başarıyla atandı');
-          fetchTicketDetails();
-        } else {
-          toast.error(response.message);
-        }
-      } catch (err) {
-        toast.error('Talep atama işlemi başarısız oldu');
-      }
-    }
+  const handleAssign = () => {
+    setIsAssignModalOpen(true);
+  };
+
+  const handleAssignSuccess = () => {
+    fetchTicketDetails();
   };
 
   const getStatusBadgeClass = (status) => {
@@ -238,6 +231,13 @@ const TicketDetail = () => {
           </div>
         </div>
       </div>
+
+      <AssignTicketModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        ticketId={ticketId}
+        onAssign={handleAssignSuccess}
+      />
     </div>
   );
 };
