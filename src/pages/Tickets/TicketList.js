@@ -19,13 +19,12 @@ const TicketList = () => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [totalRows, setTotalRows] = useState(0);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const navigate = useNavigate();
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   const getPriorityBadge = (priority) => {
     const styles = {
@@ -54,7 +53,7 @@ const TicketList = () => {
   const columns = [
     {
       name: 'Talep No',
-      selector: (row, index) => `TKT-${String(index + 1 + (page - 1) * perPage).padStart(5, '0')}`,
+      selector: (row, index) => `TKT-${String(index + 1 + (currentPage - 1) * itemsPerPage).padStart(5, '0')}`,
       sortable: true,
       width: '120px',
       sortField: 'id'
@@ -173,7 +172,7 @@ const TicketList = () => {
       setLoading(true);
       const response = await ticketService.getTickets({
         page: page,
-        per_page: perPage,
+        per_page: itemsPerPage,
         sort_by: 'id',
         sort_direction: 'asc'
       });
@@ -181,7 +180,7 @@ const TicketList = () => {
       if (response.success) {
         const sortedTickets = response.data.sort((a, b) => a.id - b.id);
         setTickets(sortedTickets || []);
-        setTotalRows(response.data?.length || 0);
+        setTotalItems(response.data?.length || 0);
       } else {
         toast.error(response.message);
       }
@@ -191,18 +190,18 @@ const TicketList = () => {
     } finally {
       setLoading(false);
     }
-  }, [perPage]);
+  }, [itemsPerPage]);
 
   useEffect(() => {
-    fetchTickets(page);
-  }, [page, perPage, fetchTickets]);
+    fetchTickets(currentPage);
+  }, [currentPage, itemsPerPage, fetchTickets]);
 
   const handlePageChange = (page) => {
-    setPage(page);
+    setCurrentPage(page);
   };
 
   const handlePerRowsChange = async (newPerPage, page) => {
-    setPerPage(newPerPage);
+    setItemsPerPage(newPerPage);
   };
 
   const handleDelete = async (ticketId) => {
@@ -211,7 +210,7 @@ const TicketList = () => {
         const response = await adminService.deleteTicket(ticketId);
         if (response.success) {
           toast.success('Talep başarıyla silindi');
-          fetchTickets(page);
+          fetchTickets(currentPage);
         } else {
           toast.error(response.message || 'Talep silinirken bir hata oluştu');
         }
@@ -226,12 +225,12 @@ const TicketList = () => {
       toast.error('Bu işlem için admin yetkisi gerekiyor');
       return;
     }
-    setSelectedTicketId(ticketId);
-    setIsAssignModalOpen(true);
+    setSelectedTicket(ticketId);
+    setShowAssignModal(true);
   };
 
   const handleAssignSuccess = () => {
-    fetchTickets(page);
+    fetchTickets(currentPage);
   };
 
   const handleStatusChange = async (ticketId, newStatus) => {
@@ -239,7 +238,7 @@ const TicketList = () => {
       const response = await ticketService.updateTicketStatus(ticketId, newStatus);
       if (response.success) {
         toast.success('Talep durumu güncellendi');
-        fetchTickets(page);
+        fetchTickets(currentPage);
       } else {
         toast.error(response.message || 'Durum güncellenirken bir hata oluştu');
       }
@@ -347,19 +346,13 @@ const TicketList = () => {
         </div>
       </div>
 
-      {error && (
-        <div className="error-message">
-          <span>{error}</span>
-        </div>
-      )}
-
       <DataTable
         columns={columns}
         data={tickets}
         progressPending={loading}
         pagination
         paginationServer
-        paginationTotalRows={totalRows}
+        paginationTotalRows={totalItems}
         onChangeRowsPerPage={handlePerRowsChange}
         onChangePage={handlePageChange}
         defaultSortFieldId="id"
@@ -386,9 +379,9 @@ const TicketList = () => {
       />
 
       <AssignTicketModal
-        isOpen={isAssignModalOpen}
-        onClose={() => setIsAssignModalOpen(false)}
-        ticketId={selectedTicketId}
+        isOpen={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        ticketId={selectedTicket}
         onAssign={handleAssignSuccess}
       />
     </div>

@@ -12,6 +12,8 @@ import CreateTicket from './pages/Tickets/CreateTicket';
 import TicketList from './pages/Tickets/TicketList';
 import TicketDetail from './pages/Tickets/TicketDetail';
 import EditTicket from './pages/Tickets/EditTicket';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
 // Giriş yapmış kullanıcıları auth sayfalarından koruma
@@ -52,6 +54,18 @@ const AppContent = () => {
 
   return (
     <div className="app">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <Header onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
       {user && !isAuthPage && (
         <Sidebar isOpen={isSidebarOpen} />

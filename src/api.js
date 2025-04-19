@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8001/api/v1';
 
@@ -29,7 +30,10 @@ api.interceptors.request.use(
 
     return config;
   },
-  error => Promise.reject(error)
+  error => {
+    toast.error('İstek gönderilirken bir hata oluştu');
+    return Promise.reject(error);
+  }
 );
 
 // Response interceptor
@@ -42,8 +46,21 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       localStorage.removeItem('access_token');
+      toast.error('Oturum süreniz doldu. Lütfen tekrar giriş yapın.');
       window.location.href = '/login';
       return Promise.reject(error);
+    }
+
+    if (error.response?.status === 403) {
+      toast.error('Bu işlem için yetkiniz bulunmuyor');
+    }
+
+    if (error.response?.status === 404) {
+      toast.error('İstenen kaynak bulunamadı');
+    }
+
+    if (error.response?.status === 500) {
+      toast.error('Sunucu hatası oluştu');
     }
 
     const errorData = {
@@ -78,6 +95,7 @@ export const authService = {
 
       if (response.data.access_token) {
         localStorage.setItem('access_token', response.data.access_token);
+        toast.success('Başarıyla giriş yapıldı');
       }
 
       return {
@@ -91,6 +109,7 @@ export const authService = {
          error.message === 'Network Error' ? 'Sunucuya bağlanılamıyor' :
          'Giriş yapılırken bir hata oluştu');
       
+      toast.error(errorMessage);
       return {
         success: false,
         message: errorMessage,
@@ -102,11 +121,13 @@ export const authService = {
   register: async (userData) => {
     try {
       const response = await api.post('/auth/register', userData);
+      toast.success('Kayıt işlemi başarılı');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.response?.data?.detail || 'Kayıt işlemi başarısız oldu');
       return {
         success: false,
         message: error.response?.data?.detail || 'Kayıt işlemi başarısız oldu',
@@ -118,11 +139,13 @@ export const authService = {
   forgotPassword: async (email) => {
     try {
       const response = await api.post('/auth/forgot-password', { email });
+      toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.response?.data?.detail || 'Şifre sıfırlama isteği başarısız oldu');
       return {
         success: false,
         message: error.response?.data?.detail || 'Şifre sıfırlama isteği başarısız oldu',
@@ -138,11 +161,13 @@ export const authService = {
         new_password: newPassword,
         new_password_confirm: newPasswordConfirm,
       });
+      toast.success('Şifreniz başarıyla sıfırlandı');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.response?.data?.detail || 'Şifre sıfırlama işlemi başarısız oldu');
       return {
         success: false,
         message: error.response?.data?.detail || 'Şifre sıfırlama işlemi başarısız oldu',
@@ -159,6 +184,7 @@ export const authService = {
         data: response.data
       };
     } catch (error) {
+      toast.error(error.response?.data?.detail || 'Profil bilgileri alınamadı');
       return {
         success: false,
         message: error.response?.data?.detail || 'Profil bilgileri alınamadı',
@@ -193,7 +219,7 @@ export const ticketService = {
         data: response.data
       };
     } catch (error) {
-      console.error('Ticket fetch error:', error);
+      toast.error('Talepler yüklenirken bir hata oluştu');
       return {
         success: false,
         message: error.api?.message || 'Talepler yüklenirken bir hata oluştu',
@@ -210,6 +236,7 @@ export const ticketService = {
         data: response.data
       };
     } catch (error) {
+      toast.error('Talep detayları yüklenirken bir hata oluştu');
       return {
         success: false,
         message: error.api?.message || 'Talep detayları yüklenirken bir hata oluştu',
@@ -221,11 +248,13 @@ export const ticketService = {
   createTicket: async (data) => {
     try {
       const response = await api.post('tickets/', data);
+      toast.success('Talep başarıyla oluşturuldu');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.api?.message || 'Talep oluşturulurken bir hata oluştu');
       return {
         success: false,
         message: error.api?.message || 'Talep oluşturulurken bir hata oluştu',
@@ -237,11 +266,13 @@ export const ticketService = {
   updateTicket: async (id, data) => {
     try {
       const response = await api.put(`tickets/${id}`, data);
+      toast.success('Talep başarıyla güncellendi');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.api?.message || 'Talep güncellenirken bir hata oluştu');
       return {
         success: false,
         message: error.api?.message || 'Talep güncellenirken bir hata oluştu',
@@ -253,11 +284,13 @@ export const ticketService = {
   deleteTicket: async (id) => {
     try {
       const response = await api.delete(`tickets/${id}`);
+      toast.success('Talep başarıyla silindi');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.api?.message || 'Talep silinirken bir hata oluştu');
       return {
         success: false,
         message: error.api?.message || 'Talep silinirken bir hata oluştu',
@@ -269,14 +302,16 @@ export const ticketService = {
   updateTicketStatus: async (ticketId, status) => {
     try {
       const response = await api.put(`/tickets/${ticketId}/status`, { status });
+      toast.success('Talep durumu güncellendi');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.response?.data?.detail || 'Talep durumu güncellenirken bir hata oluştu');
       return {
         success: false,
-        message: error.response?.data?.detail || 'Ticket durumu güncellenirken bir hata oluştu',
+        message: error.response?.data?.detail || 'Talep durumu güncellenirken bir hata oluştu',
         error: error.response?.data
       };
     }
@@ -299,11 +334,13 @@ export const ticketService = {
           }
         }
       );
+      toast.success('Dosya başarıyla yüklendi');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      toast.error(error.response?.data?.detail || 'Dosya yüklenirken bir hata oluştu');
       return {
         success: false,
         message: error.response?.data?.detail || 'Dosya yüklenirken bir hata oluştu',
@@ -321,6 +358,7 @@ export const ticketService = {
         data: response.data
       };
     } catch (error) {
+      toast.error('İstatistikler alınırken bir hata oluştu');
       return {
         success: false,
         message: error.response?.data?.detail || 'İstatistikler alınırken bir hata oluştu',
@@ -337,6 +375,7 @@ export const ticketService = {
         data: response.data
       };
     } catch (error) {
+      toast.error('Departman istatistikleri alınırken bir hata oluştu');
       return {
         success: false,
         message: error.response?.data?.detail || 'Departman istatistikleri alınırken bir hata oluştu',
@@ -353,6 +392,7 @@ export const ticketService = {
         data: response.data
       };
     } catch (error) {
+      toast.error('Kullanıcı istatistikleri alınırken bir hata oluştu');
       return {
         success: false,
         message: error.response?.data?.detail || 'Kullanıcı istatistikleri alınırken bir hata oluştu',
