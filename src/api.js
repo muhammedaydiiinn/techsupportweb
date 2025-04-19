@@ -363,9 +363,11 @@ export const ticketService = {
 };
 
 export const adminService = {
-  assignTicket: async (ticketId, userId) => {
+  assignTicket: async (ticket_id, user_id) => {
     try {
-      const response = await api.post(`tickets/${ticketId}/assign`, { user_id: userId });
+      const response = await api.post(`/tickets/admin/tickets/${ticket_id}/assign`, {
+        user_id
+      });
       return {
         success: true,
         data: response.data
@@ -385,7 +387,7 @@ export const adminService = {
       if (params.skip !== undefined) queryParams.append('skip', params.skip);
       if (params.limit !== undefined) queryParams.append('limit', params.limit);
       
-      const response = await api.get(`users/?${queryParams.toString()}`);
+      const response = await api.get(`auth/admin/users/?${queryParams.toString()}`);
       return {
         success: true,
         data: response.data

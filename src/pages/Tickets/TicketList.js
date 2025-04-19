@@ -12,6 +12,8 @@ import { ticketService, adminService } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './TicketList.css';
+import { useNavigate } from 'react-router-dom';
+import AssignTicketModal from '../../components/AssignTicketModal/AssignTicketModal';
 
 const TicketList = () => {
   const { user } = useAuth();
@@ -21,6 +23,9 @@ const TicketList = () => {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   const getPriorityBadge = (priority) => {
     const styles = {
@@ -49,9 +54,9 @@ const TicketList = () => {
   const columns = [
     {
       name: 'Talep No',
-      selector: row => row.id,
+      selector: (row, index) => `TKT-${String(index + 1 + (page - 1) * perPage).padStart(5, '0')}`,
       sortable: true,
-      width: '200px',
+      width: '120px',
     },
     {
       name: 'Başlık',
@@ -63,6 +68,7 @@ const TicketList = () => {
       name: 'Kategori',
       selector: row => row.category,
       sortable: true,
+      width: '120px',
       cell: row => {
         const categories = {
           'hardware': 'Donanım',
@@ -76,12 +82,14 @@ const TicketList = () => {
       name: 'Öncelik',
       selector: row => row.priority,
       sortable: true,
+      width: '120px',
       cell: row => getPriorityBadge(row.priority)
     },
     {
       name: 'Durum',
       selector: row => row.status,
       sortable: true,
+      width: '150px',
       cell: row => {
         const statuses = {
           'open': 'Açık',
@@ -89,25 +97,74 @@ const TicketList = () => {
           'resolved': 'Çözüldü',
           'closed': 'Kapandı'
         };
-        return (
-          <div className={`status-badge ${row.status.toLowerCase()}`}>
-            {statuses[row.status] || row.status}
-          </div>
+
+        return user?.role === 'admin' ? (
+          <select
+            value={row.status}
+            onChange={(e) => handleStatusChange(row.id, e.target.value)}
+            className="status-select"
+          >
+            <option value="open">Açık</option>
+            <option value="in_progress">İşlemde</option>
+            <option value="resolved">Çözüldü</option>
+            <option value="closed">Kapandı</option>
+          </select>
+        ) : (
+          statuses[row.status] || row.status
         );
       }
     },
     {
-      name: 'Oluşturulma Tarihi',
+      name: 'Oluşturulma',
       selector: row => row.created_at,
       sortable: true,
+      width: '180px',
       cell: row => new Date(row.created_at).toLocaleDateString('tr-TR', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: 'numeric'
       })
     },
+    {
+      name: 'İşlemler',
+      width: '180px',
+      cell: row => (
+        <div className="action-buttons">
+          <button
+            className="action-button view"
+            onClick={() => navigate(`/tickets/${row.id}`)}
+            title="Görüntüle"
+          >
+            <FontAwesomeIcon icon={faEye} size="sm" />
+          </button>
+          {user?.role === 'admin' && (
+            <>
+              <button
+                className="action-button edit"
+                onClick={() => navigate(`/tickets/${row.id}/edit`)}
+                title="Düzenle"
+              >
+                <FontAwesomeIcon icon={faEdit} size="sm" />
+              </button>
+              <button
+                className="action-button assign"
+                onClick={() => handleAssignClick(row.id)}
+                title="Ata"
+              >
+                <FontAwesomeIcon icon={faUserPlus} size="sm" />
+              </button>
+              <button
+                className="action-button delete"
+                onClick={() => handleDelete(row.id)}
+                title="Sil"
+              >
+                <FontAwesomeIcon icon={faTrash} size="sm" />
+              </button>
+            </>
+          )}
+        </div>
+      )
+    }
   ];
 
   const fetchTickets = useCallback(async (page) => {
@@ -151,83 +208,56 @@ const TicketList = () => {
       try {
         const response = await adminService.deleteTicket(ticketId);
         if (response.success) {
+          toast.success('Talep başarıyla silindi');
           fetchTickets(page);
         } else {
-          setError('Talep silinirken bir hata oluştu');
+          toast.error(response.message || 'Talep silinirken bir hata oluştu');
         }
       } catch (err) {
-        setError('Talep silinirken bir hata oluştu');
+        toast.error('Talep silinirken bir hata oluştu');
       }
     }
   };
 
-  const handleAssign = async (ticketId) => {
-    // Bu kısmı daha sonra bir modal veya dropdown ile geliştireceğiz
-    const userId = prompt('Atanacak kullanıcı ID:');
-    if (userId) {
-      try {
-        const response = await adminService.assignTicket(ticketId, userId);
-        if (response.success) {
-          fetchTickets(page);
-        } else {
-          setError('Talep atama işlemi başarısız oldu');
-        }
-      } catch (err) {
-        setError('Talep atama işlemi başarısız oldu');
-      }
+  const handleAssignClick = (ticketId) => {
+    if (user?.role !== 'admin') {
+      toast.error('Bu işlem için admin yetkisi gerekiyor');
+      return;
     }
+    setSelectedTicketId(ticketId);
+    setIsAssignModalOpen(true);
   };
 
-  const columnsWithActions = [
-    ...columns,
-    {
-      name: 'İşlemler',
-      cell: row => (
-        <div className="actions">
-          <button 
-            className="action-button view"
-            onClick={() => window.location.href = `/tickets/${row.id}`}
-            title="Görüntüle"
-          >
-            <FontAwesomeIcon icon={faEye} />
-          </button>
-          {user.role === 'ADMIN' && (
-            <>
-              <button 
-                className="action-button edit"
-                onClick={() => window.location.href = `/tickets/${row.id}/edit`}
-                title="Düzenle"
-              >
-                <FontAwesomeIcon icon={faEdit} />
-              </button>
-              <button 
-                className="action-button assign"
-                onClick={() => handleAssign(row.id)}
-                title="Ata"
-              >
-                <FontAwesomeIcon icon={faUserPlus} />
-              </button>
-              <button 
-                className="action-button delete"
-                onClick={() => handleDelete(row.id)}
-                title="Sil"
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
-            </>
-          )}
-        </div>
-      ),
-      width: '150px'
+  const handleAssignSuccess = () => {
+    fetchTickets(page);
+  };
+
+  const handleStatusChange = async (ticketId, newStatus) => {
+    try {
+      const response = await ticketService.updateTicketStatus(ticketId, newStatus);
+      if (response.success) {
+        toast.success('Talep durumu güncellendi');
+        fetchTickets(page);
+      } else {
+        toast.error(response.message || 'Durum güncellenirken bir hata oluştu');
+      }
+    } catch (err) {
+      toast.error('Durum güncellenirken bir hata oluştu');
     }
-  ];
+  };
 
   const customStyles = {
     table: {
       style: {
         backgroundColor: 'white',
         borderRadius: '10px',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e2e8f0',
+      }
+    },
+    tableWrapper: {
+      style: {
+        padding: '1rem'
       }
     },
     headRow: {
@@ -235,26 +265,67 @@ const TicketList = () => {
         backgroundColor: '#f8f9fa',
         borderTopLeftRadius: '10px',
         borderTopRightRadius: '10px',
-        borderBottom: '1px solid #dee2e6'
+        borderBottom: '2px solid #e2e8f0',
+        minHeight: '52px'
       }
     },
     headCells: {
       style: {
         padding: '1rem',
+        fontSize: '0.875rem',
         fontWeight: '600',
-        color: '#2c3e50'
+        color: '#2d3748',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em'
       }
     },
     cells: {
       style: {
-        padding: '1rem'
+        padding: '1rem',
+        fontSize: '0.875rem',
+        color: '#4a5568'
       }
     },
     rows: {
       style: {
+        backgroundColor: 'white',
+        minHeight: '48px',
+        '&:not(:last-of-type)': {
+          borderBottomStyle: 'solid',
+          borderBottomWidth: '1px',
+          borderBottomColor: '#e2e8f0'
+        },
         '&:hover': {
-          backgroundColor: '#f8f9fa',
-          cursor: 'pointer'
+          backgroundColor: '#f7fafc',
+          cursor: 'pointer',
+          transition: 'all .2s ease'
+        }
+      }
+    },
+    pagination: {
+      style: {
+        borderTop: '1px solid #e2e8f0',
+        padding: '1rem'
+      },
+      pageButtonsStyle: {
+        borderRadius: '0.375rem',
+        height: '32px',
+        minWidth: '32px',
+        padding: '0 0.5rem',
+        margin: '0 0.25rem',
+        cursor: 'pointer',
+        transition: 'all .2s ease',
+        backgroundColor: 'transparent',
+        border: '1px solid #e2e8f0',
+        color: '#4a5568',
+        '&:hover:not(:disabled)': {
+          backgroundColor: '#edf2f7',
+          borderColor: '#cbd5e0'
+        },
+        '&:disabled': {
+          cursor: 'not-allowed',
+          color: '#a0aec0',
+          backgroundColor: '#f7fafc'
         }
       }
     }
@@ -262,7 +333,17 @@ const TicketList = () => {
 
   return (
     <div className="ticket-list-container">
-      <h1>{user.role === 'ADMIN' ? 'Tüm Talepler' : 'Taleplerim'}</h1>
+      <div className="ticket-list-header">
+        <h1>{user.role === 'admin' ? 'Tüm Talepler' : 'Taleplerim'}</h1>
+        <div className="ticket-actions">
+          <button 
+            className="create-ticket-button"
+            onClick={() => navigate('/tickets/create')}
+          >
+            Yeni Talep Oluştur
+          </button>
+        </div>
+      </div>
 
       {error && (
         <div className="error-message">
@@ -271,7 +352,7 @@ const TicketList = () => {
       )}
 
       <DataTable
-        columns={columnsWithActions}
+        columns={columns}
         data={tickets}
         progressPending={loading}
         pagination
@@ -279,7 +360,17 @@ const TicketList = () => {
         paginationTotalRows={totalRows}
         onChangeRowsPerPage={handlePerRowsChange}
         onChangePage={handlePageChange}
-        noDataComponent="Henüz talep bulunmuyor"
+        noDataComponent={
+          <div className="no-data">
+            <p>Henüz talep bulunmuyor</p>
+            <button 
+              className="create-ticket-button"
+              onClick={() => navigate('/tickets/create')}
+            >
+              Yeni Talep Oluştur
+            </button>
+          </div>
+        }
         progressComponent={
           <div className="loading">
             <FontAwesomeIcon icon={faSpinner} spin />
@@ -287,6 +378,13 @@ const TicketList = () => {
           </div>
         }
         customStyles={customStyles}
+      />
+
+      <AssignTicketModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        ticketId={selectedTicketId}
+        onAssign={handleAssignSuccess}
       />
     </div>
   );

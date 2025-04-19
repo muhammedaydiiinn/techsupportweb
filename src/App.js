@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard'; // Ana sayfa komponenti
 import CreateTicket from './pages/Tickets/CreateTicket';
 import TicketList from './pages/Tickets/TicketList';
 import TicketDetail from './pages/Tickets/TicketDetail';
+import EditTicket from './pages/Tickets/EditTicket';
 import './App.css';
 
 // Giriş yapmış kullanıcıları auth sayfalarından koruma
@@ -98,6 +99,11 @@ const AppContent = () => {
           <Route path="/tickets/:ticketId" element={
             <PrivateRoute>
               <TicketDetail />
+            </PrivateRoute>
+          } />
+          <Route path="/tickets/:ticketId/edit" element={
+            <PrivateRoute>
+              <EditTicket />
             </PrivateRoute>
           } />
 
