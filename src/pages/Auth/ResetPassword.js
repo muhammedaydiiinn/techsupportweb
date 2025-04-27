@@ -62,7 +62,7 @@ const ResetPassword = () => {
     setSuccess(false);
 
     try {
-      const response = await authService.resetPassword(token, formData.password);
+      const response = await authService.resetPassword(token, formData.password, formData.confirmPassword);
       
       if (response.success) {
         setSuccess(true);
@@ -70,10 +70,10 @@ const ResetPassword = () => {
           navigate('/login');
         }, 3000);
       } else {
-        setError(response.message);
+        setError(typeof response.message === 'object' ? 'Şifre sıfırlama işlemi başarısız oldu.' : response.message);
       }
     } catch (err) {
-      setError(err.message || 'Şifre sıfırlama işlemi başarısız oldu.');
+      setError(typeof err.message === 'object' ? 'Şifre sıfırlama işlemi başarısız oldu.' : err.message);
     } finally {
       setLoading(false);
     }

@@ -167,11 +167,11 @@ export const authService = {
         data: response.data
       };
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Şifre sıfırlama işlemi başarısız oldu');
+      const errorMessage = error.response?.data?.detail || 'Şifre sıfırlama işlemi başarısız oldu';
+      toast.error(errorMessage);
       return {
         success: false,
-        message: error.response?.data?.detail || 'Şifre sıfırlama işlemi başarısız oldu',
-        error: error.response?.data
+        message: errorMessage
       };
     }
   },
