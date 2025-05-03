@@ -204,10 +204,7 @@ export const authService = {
       const response = await api.get('/auth/me');
       
       // Kullanıcı rolünü loglama
-      console.log('API getProfile yanıtı:', response.data);
-      if (response.data.role) {
-        console.log('API\'den gelen rol bilgisi:', response.data.role);
-      }
+     
       
       return {
         success: true,
@@ -261,7 +258,6 @@ export const ticketService = {
 
   getTicketById: async (id) => {
     try {
-      console.log(`api.js - getTicketById fonksiyonu çağrıldı: id=${id}`);
       
       if (!id) {
         console.error('Geçersiz ID: null veya undefined');
@@ -276,7 +272,6 @@ export const ticketService = {
       
       // URL'nin başına / eklemeden API çağrısı yapıyoruz
       const response = await api.get(`/tickets/${id}`);
-      console.log(`api.js - getTicketById başarılı yanıt:`, response.data);
       
       return {
         success: true,
@@ -310,9 +305,7 @@ export const ticketService = {
 
   createTicket: async (data) => {
     try {
-      console.log(`api.js - createTicket fonksiyonu çağrıldı:`, data);
       const response = await api.post('/tickets/', data);
-      console.log(`api.js - createTicket başarılı yanıt:`, response.data);
       toast.success('Talep başarıyla oluşturuldu');
       return {
         success: true,
@@ -331,9 +324,7 @@ export const ticketService = {
 
   updateTicket: async (id, data) => {
     try {
-      console.log(`api.js - updateTicket fonksiyonu çağrıldı: id=${id}`, data);
       const response = await api.put(`/tickets/${id}`, data);
-      console.log(`api.js - updateTicket başarılı yanıt:`, response.data);
       toast.success('Talep başarıyla güncellendi');
       return {
         success: true,
@@ -352,9 +343,7 @@ export const ticketService = {
 
   deleteTicket: async (id) => {
     try {
-      console.log(`api.js - deleteTicket fonksiyonu çağrıldı: id=${id}`);
       const response = await api.delete(`/tickets/${id}`);
-      console.log(`api.js - deleteTicket başarılı yanıt:`, response.data);
       toast.success('Talep başarıyla silindi');
       return {
         success: true,

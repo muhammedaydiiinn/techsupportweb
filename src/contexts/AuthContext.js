@@ -31,11 +31,9 @@ export const AuthProvider = ({ children }) => {
 
       const response = await authService.getProfile();
       if (response.success) {
-        console.log('Kullanıcı profili:', response.data);
         
         // API'den gelen rol bilgisini kontrol et
         const roleFromAPI = response.data.role || '';
-        console.log('API\'den gelen rol:', roleFromAPI);
         
         // Rol normalizasyonu
         let normalizedRole = roleFromAPI;
@@ -47,7 +45,6 @@ export const AuthProvider = ({ children }) => {
         // Rol 'admin' veya 'ADMIN' içeriyorsa admin olarak kabul et
         else if (roleFromAPI === 'admin' || roleFromAPI.includes('ADMIN')) {
           normalizedRole = 'admin';
-          console.log('Admin rolü tespit edildi');
         }
         
         const userData = {
@@ -55,7 +52,6 @@ export const AuthProvider = ({ children }) => {
           role: normalizedRole // Normalize edilmiş rol
         };
         
-        console.log('Normalize edilmiş kullanıcı rolü:', normalizedRole);
         setUser(userData);
       } else {
         localStorage.removeItem('access_token');

@@ -37,8 +37,6 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
         const ticketResponse = await ticketService.getTicketById(ticketId);
         const usersResponse = await userService.getAllUsers();
 
-        console.log('Ticket yanıtı:', ticketResponse);
-        console.log('Users yanıtı:', usersResponse);
 
         // ticketService artık { success: true, data: {...} } formatında yanıt döndürüyor
         if (ticketResponse && ticketResponse.success && ticketResponse.data) {

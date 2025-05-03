@@ -16,10 +16,19 @@ const userService = {
       const queryParams = { ...params };
       
       const response = await axiosInstance.get(`/users`, { params: queryParams });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Kullanıcılar getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Kullanıcılar getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -32,10 +41,19 @@ const userService = {
       }
       
       const response = await axiosInstance.get(`/users/${id}`);
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Kullanıcı detayı getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Kullanıcı detayı getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 

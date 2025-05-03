@@ -20,10 +20,19 @@ const departmentService = {
   getAllDepartments: async (params = {}) => {
     try {
       const response = await axiosInstance.get('departments', { params });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Departmanlar getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Departmanlar getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -31,10 +40,19 @@ const departmentService = {
   getDepartmentById: async (id) => {
     try {
       const response = await axiosInstance.get(`departments/${id}`);
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Departman detayı getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Departman detayı getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -51,7 +69,6 @@ const departmentService = {
         data.department_type = 'other';
       }
       
-      console.log('Departman oluşturuluyor:', data);
       
       // Departman oluştur (admin prefix'i olabilir veya olmayabilir - backend yapısına bağlı)
       const response = await axiosInstance.post('departments', data);

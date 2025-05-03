@@ -42,28 +42,21 @@ const EquipmentList = () => {
       const response = await equipmentService.getAllEquipment();
       
       if (response && response.data) {
-        console.log('API\'den gelen ekipman verisi:', response.data);
         
         // Her bir ekipmanın departman bilgisini detaylı görelim
-        response.data.forEach((item, index) => {
-          console.log(`Ekipman ${index + 1} (${item.name}) - Departman:`, item.department);
-          console.log(`Ekipman ${index + 1} - department_id:`, item.department_id);
-        });
+      
         
         // Verileri işleyerek, departman bilgilerinin doğru olmasını sağlayalım
         let processedEquipment = response.data.map(item => {
           // Departman bilgisi kontrol ediliyor
           if (!item.department && item.department_id) {
             // department_id var ama department nesnesi yoksa
-            console.log(`${item.name} için departman_id var (${item.department_id}) ama department nesnesi yok`);
             item.department = { name: 'Departman Yükleniyor...', id: item.department_id };
           } else if (item.department === null) {
             // API null döndüyse, görüntülenebilir bir departman objesi oluştur
-            console.log(`${item.name} için department null`);
             item.department = { name: 'Atanmamış' }; 
           } else if (typeof item.department === 'string') {
             // Eğer departman bir string ID ise (department_id), görüntülenebilir bir obje yap
-            console.log(`${item.name} için department string: ${item.department}`);
             item.department = { name: 'Departman Bilgisi Alınamadı', id: item.department };
           }
           
@@ -84,7 +77,6 @@ const EquipmentList = () => {
             return; // Eksik departman bilgisi yoksa işlem yapma
           }
           
-          console.log('Eksik departman bilgisi olan ekipmanlar:', equipmentWithMissingDepartments);
           
           // Her bir eksik departman bilgisi için asenkron olarak departman bilgisini çekelim
           const departmentPromises = equipmentWithMissingDepartments.map(async (item) => {
@@ -113,7 +105,6 @@ const EquipmentList = () => {
           
           // Tüm departman bilgilerinin çekilmesini bekleyelim
           await Promise.all(departmentPromises);
-          console.log('Tüm departman bilgileri güncellendi:', processedEquipment);
         };
         
         // Eksik departman bilgilerini çekelim

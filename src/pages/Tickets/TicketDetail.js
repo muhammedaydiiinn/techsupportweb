@@ -20,8 +20,6 @@ const TicketDetail = () => {
   const params = useParams();
   const ticketId = params.id;
   
-  console.log('URL Parametreleri:', params);
-  console.log('Çözümlenen ticketId:', ticketId);
   
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -68,15 +66,12 @@ const TicketDetail = () => {
       setLoading(true);
       setError(''); // Önceki hataları temizle
       
-      console.log(`Talep detayları yükleniyor - Talep ID: ${ticketId}`);
-      
+    
       // api.js'deki ticketService kullanılıyor
       const result = await ticketService.getTicketById(ticketId);
       
-      console.log(`Talep API yanıtı:`, result);
       
       if (result.success && result.data) {
-        console.log('Talep detayları:', result.data);
         setTicket(result.data);
         
         // Departman bilgisini çek
@@ -104,10 +99,7 @@ const TicketDetail = () => {
   }, [ticketId, fetchDepartment]);
 
   useEffect(() => {
-    console.log(`TicketDetail useEffect çalıştı - ticketId: ${ticketId}`);
-    
-    // Doğru ticketService'in import edildiğini kontrol edelim
-    console.log('Kullanılan ticketService:', ticketService);
+   
     
     fetchTicketDetails();
   }, [fetchTicketDetails, ticketId]);
@@ -115,8 +107,7 @@ const TicketDetail = () => {
   const handleDelete = async () => {
     if (window.confirm('Bu talebi silmek istediğinizden emin misiniz?')) {
       try {
-        console.log(`Talep siliniyor - ID: ${ticketId}`);
-        // ticketService yerine adminService kullan
+    
         const result = await ticketService.deleteTicket(ticketId);
         
         if (result.success) {

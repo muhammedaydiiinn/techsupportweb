@@ -3,7 +3,6 @@ import axiosInstance from './axiosConfig';
 const ticketService = {
   // Son destek taleplerini getir
   getRecentTickets: async () => {
-    console.log('ticketService.js dosyası yüklendi');
     try {
       // Parametre olarak limit ekleyerek son birkaç talebi getirebiliriz
       const response = await axiosInstance.get(`/tickets`, { 
@@ -148,12 +147,10 @@ const ticketService = {
       }
       
       // API çağrısı - URL, axiosInstance içindeki baseURL ile birleştirilecek
-      console.log(`ticketService.getTicketById çağrılıyor: id=${id}`);
       
       // UUID olarak istek gönder (bu API için önemli)
       const response = await axiosInstance.get(`/tickets/${id}`);
       
-      console.log(`ticketService.getTicketById yanıt:`, response);
       
       // Yanıt kontrolü
       if (!response || !response.data) {

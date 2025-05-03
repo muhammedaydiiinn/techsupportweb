@@ -43,23 +43,17 @@ const axiosInstance = axios.create({
 
 // Debug için istekleri loglama
 const logRequest = (config) => {
-  console.log(`=============================================`);
-  console.log(`API İsteği: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
   
   // Token kontrolü
   if (config.headers.Authorization) {
-    console.log('Token ile istek gönderiliyor');
   } else {
     console.warn('UYARI: Token olmadan istek gönderiliyor!');
   }
   
   if (config.data) {
-    console.log('İstek Verisi:', config.data);
   }
   if (config.params) {
-    console.log('İstek Parametreleri:', config.params);
   }
-  console.log(`=============================================`);
   return config;
 };
 
@@ -88,10 +82,7 @@ axiosInstance.interceptors.request.use(
 // Yanıt işleme interceptor'ü
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log(`=============================================`);
-    console.log(`API Yanıtı: ${response.status} ${response.config.method.toUpperCase()} ${response.config.url}`);
-    console.log(`Yanıt Verisi:`, response.data);
-    console.log(`=============================================`);
+
     return response;
   },
   (error) => {

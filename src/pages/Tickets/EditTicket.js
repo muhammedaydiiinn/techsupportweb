@@ -41,7 +41,6 @@ const EditTicket = () => {
 
       try {
         setLoading(true);
-        console.log(`Talep düzenleme verileri yükleniyor - Talep ID: ${ticketId}`);
         
         // ID kontrolü - UUID formatı kontrolü
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -50,10 +49,8 @@ const EditTicket = () => {
         }
         
         // Talep detaylarını getir - api.js'den ticketService kullanılıyor
-        console.log(`API isteği yapılacak: GET /tickets/${ticketId}`);
         const ticketResult = await ticketService.getTicketById(ticketId);
         
-        console.log(`Talep API yanıtı:`, ticketResult);
         
         if (!ticketResult.success || !ticketResult.data) {
           throw new Error(ticketResult.message || 'Talep bilgileri alınamadı');
@@ -65,9 +62,7 @@ const EditTicket = () => {
         
         try {
           // Departmanları getir
-          console.log('Departmanlar getiriliyor...');
           const deptResponse = await departmentService.getAllDepartments();
-          console.log('Departman API yanıtı:', deptResponse);
           
           if (deptResponse && deptResponse.data) {
             departmentsData = deptResponse.data;
@@ -75,9 +70,7 @@ const EditTicket = () => {
           
           // Kullanıcıları getir (yetki varsa)
           if (user.role === 'admin' || user.role === 'support') {
-            console.log('Kullanıcılar getiriliyor...');
             const userResponse = await userService.getAllUsers();
-            console.log('Kullanıcı API yanıtı:', userResponse);
             
             if (userResponse && userResponse.data) {
               usersData = userResponse.data;
@@ -92,7 +85,6 @@ const EditTicket = () => {
           });
         }
 
-        console.log('Form verisi hazırlanıyor:', ticketResult.data);
         
         setFormData({
           title: ticketResult.data.title || '',
@@ -132,7 +124,6 @@ const EditTicket = () => {
     setSaving(true);
 
     try {
-      console.log(`Talep güncelleniyor - ID: ${ticketId}`, formData);
       const result = await ticketService.updateTicket(ticketId, formData);
       
       if (result.success) {
