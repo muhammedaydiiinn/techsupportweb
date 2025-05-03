@@ -9,14 +9,20 @@ import {
   faTrash,
   faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { ticketService } from '../../services/ticketService';
+import { ticketService } from '../../services/ticketService'; // adminService'i de import et
+import { departmentService } from '../../services/departmentService';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './TicketDetail.css';
 import AssignTicketModal from '../../components/AssignTicketModal/AssignTicketModal';
 
 const TicketDetail = () => {
-  const { ticketId } = useParams();
+  const params = useParams();
+  const ticketId = params.id;
+  
+  console.log('URL Parametreleri:', params);
+  console.log('Çözümlenen ticketId:', ticketId);
+  
   const navigate = useNavigate();
   const { user } = useAuth();
   const [ticket, setTicket] = useState(null);
@@ -36,11 +42,9 @@ const TicketDetail = () => {
     if (!departmentId) return;
     
     try {
-      // Bu kısmı servisler oluşturulduktan sonra düzeltebiliriz
-      const response = await fetch(`http://127.0.0.1:8001/api/v1/departments/${departmentId}`);
-      const data = await response.json();
-      if (data) {
-        setDepartment(data);
+      const response = await departmentService.getDepartmentById(departmentId);
+      if (response && response.data) {
+        setDepartment(response.data);
       }
     } catch (err) {
       console.error('Departman bilgisi alınamadı:', err);
@@ -48,60 +52,81 @@ const TicketDetail = () => {
   }, []);
 
   const fetchTicketDetails = useCallback(async () => {
-    if (!ticketId || ticketId === 'undefined' || ticketId === 'error') {
-      setError('Geçersiz talep ID');
+    if (!ticketId || ticketId === 'undefined' || ticketId === 'error' || ticketId === 'null') {
+      setError(`Geçersiz talep ID: ${ticketId || 'boş değer'}. Lütfen talep listesine dönün ve geçerli bir talep seçin.`);
       setLoading(false);
       return;
+    }
+
+    // ID formatı kontrolü
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(ticketId)) {
+      console.warn(`Uyarı: ID bir UUID formatında değil: ${ticketId}`);
     }
 
     try {
       setLoading(true);
       setError(''); // Önceki hataları temizle
       
-      const response = await ticketService.getTicketById(ticketId);
+      console.log(`Talep detayları yükleniyor - Talep ID: ${ticketId}`);
       
-      if (response && response.data) {
-        console.log('Talep detayları:', response.data);
-        setTicket(response.data);
+      // api.js'deki ticketService kullanılıyor
+      const result = await ticketService.getTicketById(ticketId);
+      
+      console.log(`Talep API yanıtı:`, result);
+      
+      if (result.success && result.data) {
+        console.log('Talep detayları:', result.data);
+        setTicket(result.data);
         
         // Departman bilgisini çek
-        if (response.data.department_id) {
-          fetchDepartment(response.data.department_id);
+        if (result.data.department_id) {
+          fetchDepartment(result.data.department_id);
         }
       } else {
-        setError('Talep verisi alınamadı');
+        setError(result.message || 'Talep verisi alınamadı');
       }
     } catch (err) {
       console.error('Talep detayları yüklenirken hata:', err);
       
+      // Hata detaylarını ayrıntılı logla
+      console.error('Hata detayları:', {
+        message: err.message,
+        stack: err.stack,
+        response: err.response
+      });
+      
       // Kullanıcı dostu hata mesajı
-      if (err.message) {
-        setError(err.message);
-      } else if (err.response && err.response.data && err.response.data.detail) {
-        setError(err.response.data.detail);
-      } else {
-        setError('Talep detayları yüklenirken bir hata oluştu');
-      }
+      setError(err.message || 'Talep detayları yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
     }
   }, [ticketId, fetchDepartment]);
 
   useEffect(() => {
+    console.log(`TicketDetail useEffect çalıştı - ticketId: ${ticketId}`);
+    
+    // Doğru ticketService'in import edildiğini kontrol edelim
+    console.log('Kullanılan ticketService:', ticketService);
+    
     fetchTicketDetails();
-  }, [fetchTicketDetails]);
+  }, [fetchTicketDetails, ticketId]);
 
   const handleDelete = async () => {
     if (window.confirm('Bu talebi silmek istediğinizden emin misiniz?')) {
       try {
-        const response = await ticketService.deleteTicket(ticketId);
-        if (response && response.status === 200) {
+        console.log(`Talep siliniyor - ID: ${ticketId}`);
+        // ticketService yerine adminService kullan
+        const result = await ticketService.deleteTicket(ticketId);
+        
+        if (result.success) {
           toast.success('Talep başarıyla silindi');
           navigate('/tickets');
         } else {
-          toast.error('Talep silinirken bir hata oluştu');
+          toast.error(result.message || 'Talep silinirken bir hata oluştu');
         }
       } catch (err) {
+        console.error('Silme hatası:', err);
         toast.error('Talep silinirken bir hata oluştu');
       }
     }

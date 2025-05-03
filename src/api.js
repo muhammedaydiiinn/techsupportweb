@@ -21,12 +21,12 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // API URL'ini düzelt
-    if (!config.url.startsWith('http')) {
-      if (config.url.startsWith('/')) {
-        config.url = config.url.substring(1);
-      }
-    }
+    // API URL düzeltme kodunu kaldırıyoruz - bu sorunlu olabilir
+    // if (!config.url.startsWith('http')) {
+    //   if (config.url.startsWith('/')) {
+    //     config.url = config.url.substring(1);
+    //   }
+    // }
 
     return config;
   },
@@ -261,30 +261,65 @@ export const ticketService = {
 
   getTicketById: async (id) => {
     try {
-      const response = await api.get(`tickets/${id}`);
+      console.log(`api.js - getTicketById fonksiyonu çağrıldı: id=${id}`);
+      
+      if (!id) {
+        console.error('Geçersiz ID: null veya undefined');
+        throw new Error('Geçersiz talep ID');
+      }
+      
+      // UUID formatı kontrolü
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        console.warn(`Uyarı: ID bir UUID formatında değil: ${id}`);
+      }
+      
+      // URL'nin başına / eklemeden API çağrısı yapıyoruz
+      const response = await api.get(`/tickets/${id}`);
+      console.log(`api.js - getTicketById başarılı yanıt:`, response.data);
+      
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
-      toast.error('Talep detayları yüklenirken bir hata oluştu');
+      console.error('Talep detayları yüklenirken hata:', error);
+      console.error('Detaylı hata:', {
+        message: error.message,
+        config: error.config,
+        response: error.response
+      });
+      
+      let errorMessage = 'Talep detayları yüklenirken bir hata oluştu';
+      if (error.response?.status === 404) {
+        errorMessage = `Talep bulunamadı: ${id}`;
+      } else if (error.response?.status === 422) {
+        errorMessage = `Geçersiz talep ID formatı: ${id}`;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      toast.error(errorMessage);
       return {
         success: false,
-        message: error.api?.message || 'Talep detayları yüklenirken bir hata oluştu',
-        error: error.api
+        message: errorMessage,
+        error: error.response?.data || error.message
       };
     }
   },
 
   createTicket: async (data) => {
     try {
-      const response = await api.post('tickets/', data);
+      console.log(`api.js - createTicket fonksiyonu çağrıldı:`, data);
+      const response = await api.post('/tickets/', data);
+      console.log(`api.js - createTicket başarılı yanıt:`, response.data);
       toast.success('Talep başarıyla oluşturuldu');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      console.error('Talep oluşturulurken hata:', error);
       toast.error(error.api?.message || 'Talep oluşturulurken bir hata oluştu');
       return {
         success: false,
@@ -296,13 +331,16 @@ export const ticketService = {
 
   updateTicket: async (id, data) => {
     try {
-      const response = await api.put(`tickets/${id}`, data);
+      console.log(`api.js - updateTicket fonksiyonu çağrıldı: id=${id}`, data);
+      const response = await api.put(`/tickets/${id}`, data);
+      console.log(`api.js - updateTicket başarılı yanıt:`, response.data);
       toast.success('Talep başarıyla güncellendi');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      console.error('Talep güncellenirken hata:', error);
       toast.error(error.api?.message || 'Talep güncellenirken bir hata oluştu');
       return {
         success: false,
@@ -314,13 +352,16 @@ export const ticketService = {
 
   deleteTicket: async (id) => {
     try {
-      const response = await api.delete(`tickets/${id}`);
+      console.log(`api.js - deleteTicket fonksiyonu çağrıldı: id=${id}`);
+      const response = await api.delete(`/tickets/${id}`);
+      console.log(`api.js - deleteTicket başarılı yanıt:`, response.data);
       toast.success('Talep başarıyla silindi');
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      console.error('Talep silinirken hata:', error);
       toast.error(error.api?.message || 'Talep silinirken bir hata oluştu');
       return {
         success: false,

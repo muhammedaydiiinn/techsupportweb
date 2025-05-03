@@ -7,9 +7,9 @@ import {
   faCirclePlus, 
   faList, 
   faCircleCheck, 
-  faCircleXmark,
   faSpinner,
-  faArrowRight
+  faArrowRight,
+  faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { ticketService } from '../../services/ticketService';
 import './Dashboard.css';
@@ -18,11 +18,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    total: 0,
-    open: 0,
-    inProgress: 0,
-    closed: 0
+    total_tickets: 0,
+    open_tickets: 0,
+    resolved_tickets: 0,
+    resolution_rate: 0
   });
+  const [departmentStats, setDepartmentStats] = useState([]);
+  const [userStats, setUserStats] = useState([]);
   const [recentTickets, setRecentTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,26 +37,37 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-      // getRecentTickets ve getTicketStats fonksiyonları artık backendden doğrudan data almıyor
-      // Bunun yerine normal /tickets endpoint'ini kullanıp işlemi burada yapıyoruz
-      const ticketsResponse = await ticketService.getRecentTickets();
-      const statsResponse = await ticketService.getTicketStats();
+      // Paralel olarak bütün veri çağrılarını yap
+      const [ticketsResponse, statsResponse, departmentStatsResponse, userStatsResponse] = await Promise.all([
+        ticketService.getRecentTickets(),
+        ticketService.getTicketStats(),
+        ticketService.getDepartmentStats(),
+        ticketService.getUserStats()
+      ]);
 
       // Gelen veriyi işle ve state'e kaydet
-      if (ticketsResponse.data) {
+      if (ticketsResponse && ticketsResponse.data) {
         setRecentTickets(ticketsResponse.data);
       } else {
         setRecentTickets([]);
       }
 
-      if (statsResponse.data) {
+      if (statsResponse && statsResponse.data) {
         setStats(statsResponse.data);
+      }
+      
+      if (departmentStatsResponse && departmentStatsResponse.data) {
+        setDepartmentStats(departmentStatsResponse.data);
+      }
+      
+      if (userStatsResponse && userStatsResponse.data) {
+        setUserStats(userStatsResponse.data);
       }
       
       setError(null);
     } catch (err) {
-      setError('Veriler yüklenirken bir hata oluştu.');
       console.error('Dashboard veri yükleme hatası:', err);
+      setError('Veriler yüklenirken bir hata oluştu: ' + (err.message || 'Bilinmeyen hata'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +89,7 @@ const Dashboard = () => {
   if (error) {
     return (
       <div className="dashboard-error">
-        <FontAwesomeIcon icon={faCircleXmark} />
+        <FontAwesomeIcon icon={faExclamationCircle} />
         <p>{error}</p>
         <button onClick={handleRefresh}>Tekrar Dene</button>
       </div>
@@ -86,7 +99,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Hoş Geldiniz, {user?.name}</h1>
+        <h1>Hoş Geldiniz, {user?.first_name} {user?.last_name}</h1>
         <p>{user?.email}</p>
       </div>
 
@@ -96,7 +109,7 @@ const Dashboard = () => {
             <FontAwesomeIcon icon={faTicketAlt} />
           </div>
           <div className="stat-info">
-            <h3>{stats.total}</h3>
+            <h3>{stats.total_tickets}</h3>
             <p>Toplam Destek Talebi</p>
           </div>
         </div>
@@ -106,18 +119,18 @@ const Dashboard = () => {
             <FontAwesomeIcon icon={faCirclePlus} />
           </div>
           <div className="stat-info">
-            <h3>{stats.open}</h3>
+            <h3>{stats.open_tickets}</h3>
             <p>Açık Talepler</p>
           </div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon progress">
-            <FontAwesomeIcon icon={faSpinner} spin />
+            <FontAwesomeIcon icon={faCircleCheck} />
           </div>
           <div className="stat-info">
-            <h3>{stats.inProgress}</h3>
-            <p>İşlemdeki Talepler</p>
+            <h3>{stats.resolved_tickets}</h3>
+            <p>Çözülen Talepler</p>
           </div>
         </div>
 
@@ -126,8 +139,8 @@ const Dashboard = () => {
             <FontAwesomeIcon icon={faCircleCheck} />
           </div>
           <div className="stat-info">
-            <h3>{stats.closed}</h3>
-            <p>Kapalı Talepler</p>
+            <h3>{(stats.resolution_rate || 0).toFixed(1)}%</h3>
+            <p>Çözüm Oranı</p>
           </div>
         </div>
       </div>
@@ -155,6 +168,72 @@ const Dashboard = () => {
           <FontAwesomeIcon icon={faArrowRight} className="arrow-icon" />
         </div>
       </div>
+
+      {/* Departman İstatistikleri Bölümü - Sadece admin ve support kullanıcılarına gösterilir */}
+      {(user?.role === 'admin' || user?.role === 'support') && departmentStats.length > 0 && (
+        <div className="stats-section">
+          <div className="section-header">
+            <h2>Departman İstatistikleri</h2>
+          </div>
+          
+          <div className="department-stats">
+            {departmentStats.map(dept => (
+              <div key={dept.department_id} className="department-stat-card">
+                <h3>{dept.department_name}</h3>
+                <div className="stat-details">
+                  <div className="stat-item">
+                    <span className="stat-label">Toplam:</span>
+                    <span className="stat-value">{dept.total_tickets}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Açık:</span>
+                    <span className="stat-value">{dept.open_tickets}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Çözülen:</span>
+                    <span className="stat-value">{dept.resolved_tickets}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Çözüm Oranı:</span>
+                    <span className="stat-value">{(dept.resolution_rate || 0).toFixed(1)}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Kullanıcı İstatistikleri Bölümü - Sadece admin kullanıcılarına gösterilir */}
+      {user?.role === 'admin' && userStats.length > 0 && (
+        <div className="stats-section">
+          <div className="section-header">
+            <h2>Kullanıcı İstatistikleri</h2>
+          </div>
+          
+          <div className="user-stats">
+            {userStats.map(userStat => (
+              <div key={userStat.user_id} className="user-stat-card">
+                <h3>{userStat.user_name}</h3>
+                <div className="stat-details">
+                  <div className="stat-item">
+                    <span className="stat-label">Atanan Talepler:</span>
+                    <span className="stat-value">{userStat.assigned_tickets}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Çözülen Talepler:</span>
+                    <span className="stat-value">{userStat.resolved_tickets}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Çözüm Oranı:</span>
+                    <span className="stat-value">{(userStat.resolution_rate || 0).toFixed(1)}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="info-section">
         <h2>Nasıl Destek Alırım?</h2>

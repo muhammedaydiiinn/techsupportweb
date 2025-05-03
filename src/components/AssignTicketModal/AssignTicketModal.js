@@ -9,7 +9,6 @@ import './AssignTicketModal.css';
 
 const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
   const { user } = useAuth();
-  // eslint-disable-next-line no-unused-vars
   const [ticket, setTicket] = useState(null);
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState('');
@@ -34,12 +33,15 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
 
       try {
         setLoading(true);
-        const [ticketResponse, usersResponse] = await Promise.all([
-          ticketService.getTicketById(ticketId),
-          userService.getAllUsers()
-        ]);
+        // API yanıtlarını al
+        const ticketResponse = await ticketService.getTicketById(ticketId);
+        const usersResponse = await userService.getAllUsers();
 
-        if (ticketResponse && ticketResponse.status === 200 && ticketResponse.data) {
+        console.log('Ticket yanıtı:', ticketResponse);
+        console.log('Users yanıtı:', usersResponse);
+
+        // ticketService artık { success: true, data: {...} } formatında yanıt döndürüyor
+        if (ticketResponse && ticketResponse.success && ticketResponse.data) {
           setTicket(ticketResponse.data);
           if (ticketResponse.data.assigned_to) {
             setSelectedUserId(ticketResponse.data.assigned_to.id);
@@ -48,7 +50,7 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
           toast.error('Talep detayları alınamadı');
         }
 
-        if (usersResponse && usersResponse.status === 200 && usersResponse.data) {
+        if (usersResponse && usersResponse.data) {
           setUsers(usersResponse.data);
         } else {
           toast.error('Kullanıcı listesi alınamadı');
@@ -87,12 +89,13 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
     setAssigning(true);
     try {
       const response = await ticketService.assignTicket(ticketId, selectedUserId, note);
-      if (response && response.status === 200) {
+      // API yanıt formatına göre kontrol
+      if (response && response.success) {
         toast.success('Talep başarıyla atandı');
         onAssign();
         onClose();
       } else {
-        toast.error('Talep atama işlemi başarısız oldu');
+        toast.error(response?.message || 'Talep atama işlemi başarısız oldu');
       }
     } catch (error) {
       console.error('Atama hatası:', error);
@@ -106,7 +109,7 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-container">
+      <div className="modal-container assign-modal">
         <div className="modal-header">
           <h2>Talep Atama</h2>
           <button className="close-button" onClick={onClose}>
@@ -114,7 +117,7 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
           </button>
         </div>
         
-        <div className="modal-body">
+        <div className="modal-body modal-content">
           {loading ? (
             <div className="loading-spinner">
               <FontAwesomeIcon icon={faSpinner} spin />

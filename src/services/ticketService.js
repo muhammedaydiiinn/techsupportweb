@@ -1,8 +1,9 @@
 import axiosInstance from './axiosConfig';
 
 const ticketService = {
-  // Son destek taleplerini getir - Bu endpoint olmadığı için normal tickets endpoint'ini kullanıyoruz
+  // Son destek taleplerini getir
   getRecentTickets: async () => {
+    console.log('ticketService.js dosyası yüklendi');
     try {
       // Parametre olarak limit ekleyerek son birkaç talebi getirebiliriz
       const response = await axiosInstance.get(`/tickets`, { 
@@ -11,35 +12,79 @@ const ticketService = {
           sort: 'created_at:desc' 
         } 
       });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Son talepler getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Son talepler getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
-  // Talep istatistiklerini getir - Bu endpoint olmadığı için dashboard verilerini başka şekilde oluşturmalıyız
+  // Genel talep istatistiklerini getir
   getTicketStats: async () => {
     try {
-      // Tüm talepleri getirip frontend'de istatistiklerini hesaplayalım
-      const response = await axiosInstance.get(`/tickets`);
-      
-      // Eğer backend'de özel bir endpoint yoksa, frontend'de hesaplama yapacağız
-      // İstatistikler olmadığından varsayılan değerler döndürelim
-      const mockStats = {
-        total: response.data.length || 0,
-        open: response.data.filter(ticket => ticket.status === 'OPEN').length || 0,
-        inProgress: response.data.filter(ticket => ticket.status === 'IN_PROGRESS').length || 0,
-        closed: response.data.filter(ticket => ticket.status === 'CLOSED').length || 0
-      };
-      
+      const response = await axiosInstance.get(`/tickets/stats/`);
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
       return {
-        ...response,
-        data: mockStats
+        success: true,
+        data: response.data
       };
     } catch (error) {
       console.error('Talep istatistikleri getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talep istatistikleri getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Departman bazlı istatistikleri getir
+  getDepartmentStats: async () => {
+    try {
+      const response = await axiosInstance.get(`/tickets/stats/department`);
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Departman istatistikleri getirilirken hata:', error);
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Departman istatistikleri getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Kullanıcı bazlı istatistikleri getir
+  getUserStats: async () => {
+    try {
+      const response = await axiosInstance.get(`/tickets/stats/user`);
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Kullanıcı istatistikleri getirilirken hata:', error);
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Kullanıcı istatistikleri getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -47,10 +92,19 @@ const ticketService = {
   getAllTickets: async (params) => {
     try {
       const response = await axiosInstance.get(`/tickets`, { params });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Talepler getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talepler getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -58,10 +112,19 @@ const ticketService = {
   getAllTicketsAdmin: async (params) => {
     try {
       const response = await axiosInstance.get(`/tickets/admin/tickets`, { params });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Admin talepleri getirilirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Admin talepleri getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -69,36 +132,86 @@ const ticketService = {
   getTicketById: async (id) => {
     try {
       // ID parametresinin kontrolü
-      if (!id || id === 'undefined') {
-        throw new Error('Geçersiz talep ID');
+      if (!id || id === 'undefined' || id === 'error' || id === 'null') {
+        throw new Error(`Geçersiz talep ID: ${id}`);
       }
       
-      // API path'ini düzelt
+      // UUID formatı kontrolü (çoğu durumda UUID olacak)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const isUuid = uuidRegex.test(id);
+      
+      if (!isUuid) {
+        console.warn(`Uyarı: ID bir UUID formatında değil: ${id}`);
+        // Burada sayısal ID kontrolü de yapabilirsiniz
+        // const isNumeric = !isNaN(parseInt(id));
+        // if (!isNumeric) {...}
+      }
+      
+      // API çağrısı - URL, axiosInstance içindeki baseURL ile birleştirilecek
+      console.log(`ticketService.getTicketById çağrılıyor: id=${id}`);
+      
+      // UUID olarak istek gönder (bu API için önemli)
       const response = await axiosInstance.get(`/tickets/${id}`);
+      
+      console.log(`ticketService.getTicketById yanıt:`, response);
       
       // Yanıt kontrolü
       if (!response || !response.data) {
-        throw new Error('Talep bulunamadı');
+        throw new Error(`ID: ${id} için talep bulunamadı`);
       }
       
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Talep detayı getirilirken hata:', error);
+      console.error('Hata detayları:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response ? {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data
+        } : null,
+        request: error.request ? {
+          responseURL: error.request.responseURL,
+          status: error.request.status,
+          responseText: error.request.responseText
+        } : null,
+        config: error.config ? {
+          url: error.config.url,
+          method: error.config.method,
+          baseURL: error.config.baseURL,
+          headers: error.config.headers
+        } : null
+      });
       
-      // Daha açıklayıcı hata mesajları
+      // Hata mesajını belirle
+      let errorMessage = 'Talep detayları yüklenirken bir hata oluştu';
       if (error.response) {
         if (error.response.status === 404) {
-          throw new Error('Talep bulunamadı');
+          errorMessage = `ID: ${id} için talep bulunamadı`;
         } else if (error.response.status === 403) {
-          throw new Error('Bu talebi görüntüleme yetkiniz yok');
+          errorMessage = 'Bu talebi görüntüleme yetkiniz yok';
         } else if (error.response.status === 401) {
-          throw new Error('Oturum süresi dolmuş, lütfen tekrar giriş yapın');
+          errorMessage = 'Oturum süresi dolmuş, lütfen tekrar giriş yapın';
         } else if (error.response.status === 422) {
-          throw new Error('Geçersiz talep ID formatı');
+          errorMessage = `Geçersiz talep ID formatı: ${id}`;
+        } else if (error.response.data?.detail) {
+          errorMessage = error.response.data.detail;
         }
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -115,10 +228,19 @@ const ticketService = {
       }
       
       const response = await axiosInstance.post(`/tickets`, ticketData, { headers });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Talep oluşturulurken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talep oluşturulurken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -126,10 +248,19 @@ const ticketService = {
   updateTicket: async (id, ticketData) => {
     try {
       const response = await axiosInstance.put(`/tickets/${id}`, ticketData);
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Talep güncellenirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talep güncellenirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -137,10 +268,19 @@ const ticketService = {
   updateTicketStatus: async (id, status) => {
     try {
       const response = await axiosInstance.put(`/tickets/${id}/status`, { status });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Talep durumu güncellenirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talep durumu güncellenirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -148,10 +288,19 @@ const ticketService = {
   deleteTicket: async (id) => {
     try {
       const response = await axiosInstance.delete(`/tickets/admin/tickets/${id}`);
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Talep silinirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talep silinirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -163,10 +312,19 @@ const ticketService = {
           'Content-Type': 'multipart/form-data'
         }
       });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Dosya yüklenirken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Dosya yüklenirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -174,10 +332,19 @@ const ticketService = {
   addEquipmentToTicket: async (ticketId, equipmentId) => {
     try {
       const response = await axiosInstance.post(`/tickets/${ticketId}/equipment`, { equipment_id: equipmentId });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Ekipman ilişkilendirme sırasında hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Ekipman ilişkilendirme sırasında bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -185,10 +352,19 @@ const ticketService = {
   removeEquipmentFromTicket: async (ticketId, equipmentId) => {
     try {
       const response = await axiosInstance.delete(`/tickets/${ticketId}/equipment/${equipmentId}`);
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Ekipman ilişkisi kaldırılırken hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Ekipman ilişkisi kaldırılırken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   },
 
@@ -200,10 +376,19 @@ const ticketService = {
         ticket_id: id,
         note
       });
-      return response;
+      // API.js servisinde kullanılan success formatına uygun yanıt döndür
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error('Talep atama işlemi sırasında hata:', error);
-      throw error;
+      // API.js servisinde kullanılan hata formatına uygun yanıt döndür
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talep atama işlemi sırasında bir hata oluştu',
+        error: error.response?.data || error.message
+      };
     }
   }
 };

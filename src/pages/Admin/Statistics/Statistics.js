@@ -9,9 +9,13 @@ import {
   faTicketAlt,
   faDesktop,
   faUsers,
-  faBuilding
+  faBuilding,
+  faCheckCircle,
+  faCircleExclamation,
+  faPercentage
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../../contexts/AuthContext';
+import { ticketService } from '../../../services/ticketService';
 import { toast } from 'react-toastify';
 import './Statistics.css';
 
@@ -20,11 +24,20 @@ const Statistics = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stats, setStats] = useState({
-    tickets: { total: 0, open: 0, inProgress: 0, closed: 0 },
-    equipment: { total: 0, active: 0, maintenance: 0 },
-    users: { total: 0, active: 0, admin: 0 },
-    departments: { total: 0 }
+  
+  // Yeni state yapıları
+  const [ticketStats, setTicketStats] = useState({
+    total_tickets: 0,
+    open_tickets: 0,
+    resolved_tickets: 0,
+    resolution_rate: 0
+  });
+  const [departmentStats, setDepartmentStats] = useState([]);
+  const [userStats, setUserStats] = useState([]);
+  const [equipmentStats, setEquipmentStats] = useState({
+    total: 0,
+    active: 0,
+    maintenance: 0
   });
 
   // Admin yetkisi kontrolü
@@ -39,26 +52,45 @@ const Statistics = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        // Burada gerçek API çağrıları yapılacak, şimdilik mock veriler kullanıyoruz
-        // Örnek:
-        // const ticketsResponse = await ticketService.getTicketStats();
-        // const usersResponse = await userService.getUserStats();
-        // vs.
+        
+        // Gerçek API çağrıları
+        const [
+          ticketsResponse, 
+          departmentStatsResponse, 
+          userStatsResponse
+        ] = await Promise.all([
+          ticketService.getTicketStats(),
+          ticketService.getDepartmentStats(),
+          ticketService.getUserStats()
+        ]);
 
-        // Simüle edilmiş istatistik verileri
-        setTimeout(() => {
-          setStats({
-            tickets: { total: 125, open: 45, inProgress: 32, closed: 48 },
-            equipment: { total: 78, active: 65, maintenance: 13 },
-            users: { total: 42, active: 38, admin: 4 },
-            departments: { total: 6 }
-          });
-          setLoading(false);
-        }, 1000);
+        // API yanıtlarını kontrol et ve state'leri güncelle
+        if (ticketsResponse && ticketsResponse.data) {
+          setTicketStats(ticketsResponse.data);
+        }
+        
+        if (departmentStatsResponse && departmentStatsResponse.data) {
+          setDepartmentStats(departmentStatsResponse.data);
+        }
+        
+        if (userStatsResponse && userStatsResponse.data) {
+          setUserStats(userStatsResponse.data);
+        }
+        
+        // Ekipman istatistikleri için şimdilik örnek veri kullanıyoruz
+        // Gerçek uygulamada burası da API'den gelecek
+        setEquipmentStats({
+          total: 78,
+          active: 65,
+          maintenance: 13
+        });
+        
+        setError('');
       } catch (err) {
         console.error('İstatistikler yüklenirken hata:', err);
-        setError('İstatistikler yüklenirken bir hata oluştu');
+        setError('İstatistikler yüklenirken bir hata oluştu: ' + (err.message || 'Bilinmeyen hata'));
         toast.error('İstatistikler yüklenirken bir hata oluştu');
+      } finally {
         setLoading(false);
       }
     };
@@ -103,34 +135,125 @@ const Statistics = () => {
         </div>
       </div>
 
-      <div className="statistics-grid">
-        {/* Destek Talepleri İstatistikleri */}
-        <div className="statistics-card tickets">
-          <div className="card-header">
-            <FontAwesomeIcon icon={faTicketAlt} />
-            <h2>Destek Talepleri</h2>
+      {/* Özet İstatistikler */}
+      <div className="statistics-summary">
+        <div className="summary-cards">
+          <div className="summary-card">
+            <div className="summary-icon">
+              <FontAwesomeIcon icon={faTicketAlt} />
+            </div>
+            <div className="summary-info">
+              <span className="summary-value">{ticketStats.total_tickets}</span>
+              <span className="summary-label">Toplam Talep</span>
+            </div>
           </div>
-          <div className="card-body">
-            <div className="stat-item">
-              <span className="stat-label">Toplam</span>
-              <span className="stat-value">{stats.tickets.total}</span>
+          
+          <div className="summary-card">
+            <div className="summary-icon">
+              <FontAwesomeIcon icon={faCircleExclamation} />
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Açık</span>
-              <span className="stat-value">{stats.tickets.open}</span>
+            <div className="summary-info">
+              <span className="summary-value">{ticketStats.open_tickets}</span>
+              <span className="summary-label">Açık Talep</span>
             </div>
-            <div className="stat-item">
-              <span className="stat-label">İşlemde</span>
-              <span className="stat-value">{stats.tickets.inProgress}</span>
+          </div>
+          
+          <div className="summary-card">
+            <div className="summary-icon">
+              <FontAwesomeIcon icon={faCheckCircle} />
             </div>
-            <div className="stat-item">
-              <span className="stat-label">Kapalı</span>
-              <span className="stat-value">{stats.tickets.closed}</span>
+            <div className="summary-info">
+              <span className="summary-value">{ticketStats.resolved_tickets}</span>
+              <span className="summary-label">Çözülen Talep</span>
+            </div>
+          </div>
+          
+          <div className="summary-card">
+            <div className="summary-icon">
+              <FontAwesomeIcon icon={faPercentage} />
+            </div>
+            <div className="summary-info">
+              <span className="summary-value">{(ticketStats.resolution_rate || 0).toFixed(1)}%</span>
+              <span className="summary-label">Çözüm Oranı</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Ekipman İstatistikleri */}
+      <div className="statistics-grid">
+        {/* Departman İstatistikleri */}
+        <div className="statistics-card departments">
+          <div className="card-header">
+            <FontAwesomeIcon icon={faBuilding} />
+            <h2>Departman İstatistikleri</h2>
+          </div>
+          <div className="card-body with-table">
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <th>Departman</th>
+                  <th>Toplam</th>
+                  <th>Açık</th>
+                  <th>Çözülen</th>
+                  <th>Çözüm Oranı</th>
+                </tr>
+              </thead>
+              <tbody>
+                {departmentStats.map(dept => (
+                  <tr key={dept.department_id}>
+                    <td>{dept.department_name}</td>
+                    <td>{dept.total_tickets}</td>
+                    <td>{dept.open_tickets}</td>
+                    <td>{dept.resolved_tickets}</td>
+                    <td>{(dept.resolution_rate || 0).toFixed(1)}%</td>
+                  </tr>
+                ))}
+                {departmentStats.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="no-data">Departman verisi bulunamadı</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Kullanıcı İstatistikleri */}
+        <div className="statistics-card users">
+          <div className="card-header">
+            <FontAwesomeIcon icon={faUsers} />
+            <h2>Kullanıcı İstatistikleri</h2>
+          </div>
+          <div className="card-body with-table">
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <th>Kullanıcı</th>
+                  <th>Atanan</th>
+                  <th>Çözülen</th>
+                  <th>Çözüm Oranı</th>
+                </tr>
+              </thead>
+              <tbody>
+                {userStats.map(user => (
+                  <tr key={user.user_id}>
+                    <td>{user.user_name}</td>
+                    <td>{user.assigned_tickets}</td>
+                    <td>{user.resolved_tickets}</td>
+                    <td>{(user.resolution_rate || 0).toFixed(1)}%</td>
+                  </tr>
+                ))}
+                {userStats.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="no-data">Kullanıcı verisi bulunamadı</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Ekipman İstatistikleri - (Bu kısım API'den gelmiyor, örnek veri) */}
         <div className="statistics-card equipment">
           <div className="card-header">
             <FontAwesomeIcon icon={faDesktop} />
@@ -139,51 +262,15 @@ const Statistics = () => {
           <div className="card-body">
             <div className="stat-item">
               <span className="stat-label">Toplam</span>
-              <span className="stat-value">{stats.equipment.total}</span>
+              <span className="stat-value">{equipmentStats.total}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Aktif</span>
-              <span className="stat-value">{stats.equipment.active}</span>
+              <span className="stat-value">{equipmentStats.active}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Bakımda</span>
-              <span className="stat-value">{stats.equipment.maintenance}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Kullanıcı İstatistikleri */}
-        <div className="statistics-card users">
-          <div className="card-header">
-            <FontAwesomeIcon icon={faUsers} />
-            <h2>Kullanıcılar</h2>
-          </div>
-          <div className="card-body">
-            <div className="stat-item">
-              <span className="stat-label">Toplam</span>
-              <span className="stat-value">{stats.users.total}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Aktif</span>
-              <span className="stat-value">{stats.users.active}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Yönetici</span>
-              <span className="stat-value">{stats.users.admin}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Departman İstatistikleri */}
-        <div className="statistics-card departments">
-          <div className="card-header">
-            <FontAwesomeIcon icon={faBuilding} />
-            <h2>Departmanlar</h2>
-          </div>
-          <div className="card-body">
-            <div className="stat-item">
-              <span className="stat-label">Toplam</span>
-              <span className="stat-value">{stats.departments.total}</span>
+              <span className="stat-value">{equipmentStats.maintenance}</span>
             </div>
           </div>
         </div>

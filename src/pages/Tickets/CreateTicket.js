@@ -97,8 +97,14 @@ const CreateTicket = () => {
       
       if (response && response.status >= 200 && response.status < 300 && response.data) {
         toast.success('Talep başarıyla oluşturuldu');
-        // Oluşturulan ticket ID'si ile detay sayfasına yönlendirme
-        navigate(`/tickets/${response.data.id || 'error'}`);
+        
+        // ID kontrolü eklenmiş yönlendirme
+        if (response.data.id) {
+          navigate(`/tickets/${response.data.id}`);
+        } else {
+          toast.error('Talep oluşturuldu, ancak ID bilgisi alınamadı');
+          navigate('/tickets');
+        }
       } else {
         setError('Talep oluşturulamadı');
         toast.error('Talep oluşturulamadı');

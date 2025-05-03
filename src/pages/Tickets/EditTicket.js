@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { ticketService } from '../../services/ticketService';
+import { ticketService } from '../../services/ticketService'; // adminService'i de import et
+import { departmentService } from '../../services/departmentService';
+import { userService } from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './EditTicket.css';
 
 const EditTicket = () => {
-  const { ticketId } = useParams();
+  const { id } = useParams();
+  const ticketId = id;
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -28,44 +31,77 @@ const EditTicket = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!ticketId) {
-        setError('Geçersiz talep ID');
+      // URL'den gelen ticketId parametresini kontrol et
+      if (!ticketId || ticketId === 'undefined' || ticketId === 'null') {
+        console.error(`Geçersiz talep ID: ${ticketId || 'boş değer'}`);
+        setError(`Geçersiz talep ID: ${ticketId || 'boş değer'}. Lütfen talep listesine dönün ve geçerli bir talep seçin.`);
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
+        console.log(`Talep düzenleme verileri yükleniyor - Talep ID: ${ticketId}`);
         
-        // Talep detaylarını getir
-        const ticketResponse = await ticketService.getTicketById(ticketId);
-        if (!ticketResponse || !ticketResponse.data) {
-          throw new Error('Talep bilgileri alınamadı');
+        // ID kontrolü - UUID formatı kontrolü
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(ticketId)) {
+          console.warn(`Uyarı: ID bir UUID formatında değil: ${ticketId}`);
         }
         
-        // Admin ise departman ve kullanıcı listelerini getir
+        // Talep detaylarını getir - api.js'den ticketService kullanılıyor
+        console.log(`API isteği yapılacak: GET /tickets/${ticketId}`);
+        const ticketResult = await ticketService.getTicketById(ticketId);
+        
+        console.log(`Talep API yanıtı:`, ticketResult);
+        
+        if (!ticketResult.success || !ticketResult.data) {
+          throw new Error(ticketResult.message || 'Talep bilgileri alınamadı');
+        }
+        
+        // Departman ve kullanıcı listelerini getir
         let departmentsData = [];
         let usersData = [];
         
-        if (user.role === 'admin') {
-          try {
-            // Normalde burada departman ve kullanıcı listelerini alacak servis çağrıları yapılır
-            // Şu an için boş liste kullanıyoruz
-            departmentsData = [];
-            usersData = [];
-          } catch (err) {
-            console.error('Yardımcı veriler yüklenemedi:', err);
+        try {
+          // Departmanları getir
+          console.log('Departmanlar getiriliyor...');
+          const deptResponse = await departmentService.getAllDepartments();
+          console.log('Departman API yanıtı:', deptResponse);
+          
+          if (deptResponse && deptResponse.data) {
+            departmentsData = deptResponse.data;
           }
+          
+          // Kullanıcıları getir (yetki varsa)
+          if (user.role === 'admin' || user.role === 'support') {
+            console.log('Kullanıcılar getiriliyor...');
+            const userResponse = await userService.getAllUsers();
+            console.log('Kullanıcı API yanıtı:', userResponse);
+            
+            if (userResponse && userResponse.data) {
+              usersData = userResponse.data;
+            }
+          }
+        } catch (err) {
+          console.error('Yardımcı veriler yüklenemedi:', err);
+          console.error('Yardımcı veri hata detayları:', {
+            message: err.message,
+            stack: err.stack,
+            response: err.response
+          });
         }
 
+        console.log('Form verisi hazırlanıyor:', ticketResult.data);
+        
         setFormData({
-          title: ticketResponse.data.title || '',
-          description: ticketResponse.data.description || '',
-          category: ticketResponse.data.category || '',
-          priority: ticketResponse.data.priority || '',
-          status: ticketResponse.data.status || '',
-          department_id: ticketResponse.data.department_id || '',
-          assigned_to_id: ticketResponse.data.assigned_to ? ticketResponse.data.assigned_to.id : ''
+          title: ticketResult.data.title || '',
+          description: ticketResult.data.description || '',
+          category: ticketResult.data.category || '',
+          priority: ticketResult.data.priority || '',
+          status: ticketResult.data.status || '',
+          department_id: ticketResult.data.department_id || '',
+          assigned_to_id: ticketResult.data.assigned_to ? ticketResult.data.assigned_to.id : ''
         });
         
         setDepartments(departmentsData);
@@ -74,6 +110,12 @@ const EditTicket = () => {
         
       } catch (err) {
         console.error('Veri yükleme hatası:', err);
+        console.error('Hata detayları:', {
+          message: err.message,
+          stack: err.stack,
+          response: err.response
+        });
+        
         setError(typeof err === 'string' ? err : 
           (err.message || 'Veriler yüklenirken bir hata oluştu'));
         toast.error('Veriler yüklenirken bir hata oluştu');
@@ -90,13 +132,15 @@ const EditTicket = () => {
     setSaving(true);
 
     try {
-      const response = await ticketService.updateTicket(ticketId, formData);
-      if (response && response.status === 200) {
+      console.log(`Talep güncelleniyor - ID: ${ticketId}`, formData);
+      const result = await ticketService.updateTicket(ticketId, formData);
+      
+      if (result.success) {
         toast.success('Talep başarıyla güncellendi');
         navigate(`/tickets/${ticketId}`);
       } else {
-        setError('Talep güncellenemedi');
-        toast.error('Talep güncellenemedi');
+        setError(result.message || 'Talep güncellenemedi');
+        toast.error(result.message || 'Talep güncellenemedi');
       }
     } catch (err) {
       console.error('Güncelleme hatası:', err);
@@ -208,52 +252,55 @@ const EditTicket = () => {
           </div>
         </div>
 
-        {user.role === 'admin' && (
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="department">Departman</label>
-              <select
-                id="department"
-                value={formData.department_id}
-                onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-              >
-                <option value="">Seçiniz</option>
-                {departments.map(dept => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="department_id">Departman</label>
+            <select
+              id="department_id"
+              value={formData.department_id}
+              onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
+            >
+              <option value="">Departmansız</option>
+              {departments.map(department => (
+                <option key={department.id} value={department.id}>
+                  {department.name}
+                </option>
+              ))}
+            </select>
+            {departments.length === 0 && !loading && <div className="info-message">Departman bulunamadı</div>}
+          </div>
 
+          {(user.role === 'admin' || user.role === 'support') && (
             <div className="form-group">
-              <label htmlFor="assigned_to">Atanan Kişi</label>
+              <label htmlFor="assigned_to_id">Atanmış Kişi</label>
               <select
-                id="assigned_to"
+                id="assigned_to_id"
                 value={formData.assigned_to_id}
                 onChange={(e) => setFormData({ ...formData, assigned_to_id: e.target.value })}
               >
-                <option value="">Seçiniz</option>
+                <option value="">Atanmamış</option>
                 {users.map(user => (
                   <option key={user.id} value={user.id}>
                     {user.first_name} {user.last_name}
                   </option>
                 ))}
               </select>
+              {users.length === 0 && !loading && <div className="info-message">Kullanıcı bulunamadı</div>}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="cancel-button"
             onClick={() => navigate(`/tickets/${ticketId}`)}
+            disabled={saving}
           >
             İptal
           </button>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="save-button"
             disabled={saving}
           >

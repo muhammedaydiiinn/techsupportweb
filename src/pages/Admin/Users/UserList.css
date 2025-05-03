@@ -1,63 +1,78 @@
 .user-list-container {
-  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .user-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
 }
 
 .back-button {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: none;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  margin-right: 1.5rem;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  transition: color 0.2s;
 }
 
 .back-button:hover {
-  background-color: var(--background-color);
+  color: #000;
+}
+
+.back-button span {
+  margin-left: 0.5rem;
 }
 
 .user-list-header h1 {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  font-size: 1.8rem;
+  color: #333;
   margin: 0;
-  font-size: 1.5rem;
+}
+
+.user-list-header h1 svg {
+  margin-right: 0.75rem;
+  color: #3498db;
 }
 
 .add-user-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: var(--primary-color);
+  background-color: #3498db;
   color: white;
   border: none;
   border-radius: 4px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.3s;
 }
 
 .add-user-button:hover {
-  background-color: var(--primary-dark);
+  background-color: #2980b9;
+}
+
+.add-user-button svg {
+  margin-right: 0.5rem;
 }
 
 .add-user-button:disabled {
-  background-color: var(--border-color);
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
@@ -68,12 +83,14 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
 }
 
 .user-list-loading svg {
   font-size: 2rem;
-  color: var(--primary-color);
+  margin-bottom: 1rem;
+  color: #3498db;
 }
 
 /* Hata durumu */
@@ -83,22 +100,29 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  gap: 1rem;
-  color: var(--error-color);
+  padding: 2rem;
+  text-align: center;
 }
 
 .user-list-error svg {
   font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #e74c3c;
+}
+
+.user-list-error span {
+  color: #555;
+  margin-bottom: 1rem;
 }
 
 .user-list-error button {
-  padding: 0.5rem 1rem;
-  background-color: var(--primary-color);
+  background-color: #3498db;
   color: white;
   border: none;
   border-radius: 4px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  margin-top: 1rem;
 }
 
 /* Boş durum */
@@ -107,32 +131,44 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
-  gap: 1rem;
-  background-color: var(--surface-color);
-  border: 1px dashed var(--border-color);
+  padding: 3rem;
+  background-color: #f9f9f9;
   border-radius: 8px;
-  padding: 2rem;
+  text-align: center;
+}
+
+.empty-state p {
+  color: #777;
+  margin-bottom: 1rem;
 }
 
 .empty-state button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: var(--primary-color);
+  background-color: #3498db;
   color: white;
   border: none;
   border-radius: 4px;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
   cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.empty-state button:hover {
+  background-color: #2980b9;
+}
+
+.empty-state button svg {
+  margin-right: 0.5rem;
 }
 
 /* Tablo stili */
 .user-table-container {
-  background-color: var(--surface-color);
+  overflow-x: auto;
+  background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  overflow: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .user-table {
@@ -140,17 +176,20 @@
   border-collapse: collapse;
 }
 
-.user-table th,
-.user-table td {
+.user-table th {
+  background-color: #f4f6f8;
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--border-color);
-  vertical-align: middle;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 2px solid #eee;
 }
 
-.user-table th {
-  background-color: var(--background-light);
-  font-weight: 600;
+.user-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  vertical-align: middle;
 }
 
 .user-table tr:last-child td {
@@ -158,52 +197,43 @@
 }
 
 .user-table tr:hover {
-  background-color: var(--background-light);
+  background-color: #f9f9f9;
 }
 
 /* Rol seçim */
-.role-select {
+.role-select,
+.department-select {
   width: 100%;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: var(--background-color);
-  color: var(--text-primary);
-  font-size: 0.875rem;
+  background-color: white;
   cursor: pointer;
-  outline: none;
-  transition: border-color 0.2s;
+  font-size: 0.9rem;
 }
 
-.role-select:focus {
-  border-color: var(--primary-color);
-}
-
-.role-select:disabled {
-  background-color: var(--background-light);
-  cursor: not-allowed;
+.role-select:disabled,
+.department-select:disabled {
   opacity: 0.7;
+  cursor: not-allowed;
 }
 
-/* Badge stilleri */
 .role-badge {
   display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
   font-weight: 500;
-  text-align: center;
-  width: 80px;
 }
 
 .role-badge.admin {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: #ebf8ff;
+  color: #3182ce;
 }
 
 .role-badge.user {
-  background-color: var(--secondary-color);
-  color: white;
+  background-color: #f0fff4;
+  color: #38a169;
 }
 
 .status-badge {
@@ -270,49 +300,44 @@
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
 }
 
-.edit-button,
-.delete-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.action-buttons button {
+  background: none;
+  border: none;
   width: 32px;
   height: 32px;
   border-radius: 4px;
-  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.edit-button {
-  background-color: var(--primary-light);
-  color: var(--primary-color);
+  color: #666;
+  transition: all 0.2s;
 }
 
 .edit-button:hover {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.delete-button {
-  background-color: var(--error-light);
-  color: var(--error-color);
+  background-color: #ebf8ff;
+  color: #3182ce;
 }
 
 .delete-button:hover {
-  background-color: var(--error-color);
-  color: white;
+  background-color: #fff5f5;
+  color: #e53e3e;
 }
 
-.edit-button:disabled,
-.delete-button:disabled {
+.action-buttons button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
+  .user-list-container {
+    padding: 1rem;
+  }
+  
   .user-list-header {
     flex-direction: column;
     align-items: flex-start;
@@ -324,8 +349,54 @@
     justify-content: center;
   }
   
-  .user-table th:nth-child(1),
+  .user-table th:nth-child(1), 
   .user-table td:nth-child(1) {
-    display: none;
+    display: none; /* ID sütununu mobilde gizle */
+  }
+  
+  .user-table {
+    font-size: 0.9rem;
+  }
+  
+  .user-table th, 
+  .user-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .role-select,
+  .department-select {
+    padding: 0.4rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .user-list-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .user-table-container {
+    margin: 0 -1rem;
+    border-radius: 0;
+  }
+  
+  .user-table th, 
+  .user-table td {
+    padding: 0.6rem 0.4rem;
+  }
+  
+  .user-table th:nth-child(3), 
+  .user-table td:nth-child(3) {
+    display: none; /* E-posta sütununu küçük ekranlarda gizle */
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .action-buttons button {
+    width: 28px;
+    height: 28px;
   }
 } 

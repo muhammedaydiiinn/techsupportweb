@@ -6,6 +6,31 @@ import { toast } from 'react-toastify';
 // Development ortamında fallback olarak sabit bir URL kullanabiliriz
 const apiBaseUrl = API_URL || 'http://127.0.0.1:8001/api/v1';
 
+console.log('API_URL:', API_URL);
+console.log('API Base URL:', apiBaseUrl);
+
+// Test fonksiyonu - komponent mount edildiğinde API bağlantısını test etmek için
+export const testApiConnection = async () => {
+  try {
+    console.log(`API bağlantısı test ediliyor: ${apiBaseUrl}`);
+    const response = await axios.get(`${apiBaseUrl}/health-check`, { timeout: 5000 });
+    console.log('API bağlantı testi sonucu:', response.data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('API bağlantı testi başarısız:', error);
+    return { 
+      success: false, 
+      error: error.message,
+      details: {
+        message: error.message,
+        code: error.code,
+        config: error.config,
+        response: error.response
+      }
+    };
+  }
+};
+
 // Axios instance oluştur
 const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
@@ -19,7 +44,7 @@ const axiosInstance = axios.create({
 // Debug için istekleri loglama
 const logRequest = (config) => {
   console.log(`=============================================`);
-  console.log(`API İsteği: ${config.method.toUpperCase()} ${config.baseURL + config.url}`);
+  console.log(`API İsteği: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
   
   // Token kontrolü
   if (config.headers.Authorization) {
@@ -51,11 +76,6 @@ axiosInstance.interceptors.request.use(
       console.warn('Token bulunamadı! Bu istek yetkilendirilmemiş olarak gönderilecek.');
     }
     
-    // API URL'ini düzelt
-    if (config.url.startsWith('/')) {
-      config.url = config.url.substring(1);
-    }
-    
     // Debug için loglama
     return logRequest(config);
   },
@@ -84,6 +104,25 @@ axiosInstance.interceptors.response.use(
       params: error.config?.params,
       responseData: error.response?.data
     });
+    
+    // Hata mesajlarını direkt olarak göster
+    if (error.response && error.response.data) {
+      console.error(`Hata Detayı:`, error.response.data);
+      
+      if (error.response.data.detail) {
+        console.error(`Hata Açıklaması:`, error.response.data.detail);
+      }
+      
+      if (error.response.data.errors) {
+        console.error(`Validasyon Hataları:`, error.response.data.errors);
+      }
+    }
+    
+    // Özel URL formatı hataları için daha detaylı bilgi 
+    if (error.config && error.config.url) {
+      console.error(`İstek URL: ${error.config.baseURL}/${error.config.url}`);
+    }
+    
     console.error(`=============================================`);
 
     // 401 Unauthorized hatası alındığında otomatik olarak logout işlemi yapılabilir

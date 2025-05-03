@@ -6,6 +6,8 @@
   background-color: var(--surface-color);
   border-bottom: 1px solid var(--border-color);
   height: 64px;
+  position: relative;
+  z-index: 999;
 }
 
 .header-left {

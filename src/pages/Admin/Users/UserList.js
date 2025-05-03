@@ -15,6 +15,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './UserList.css';
 import { departmentService } from '../../../services/departmentService';
+import UserForm from '../../../components/UserForm/UserForm';
 
 const UserList = () => {
   const navigate = useNavigate();
@@ -24,6 +25,8 @@ const UserList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Admin yetkisi kontrolü
   useEffect(() => {
@@ -106,8 +109,6 @@ const UserList = () => {
     }
   };
 
-
-
   // Kullanıcı sil
   const handleDeleteUser = async (userId, name) => {
     if (user?.role !== 'admin') {
@@ -166,6 +167,60 @@ const UserList = () => {
     }
   };
 
+  // Yeni kullanıcı ekle
+  const handleAddUser = () => {
+    setCurrentUser(null);
+    setShowForm(true);
+  };
+  
+  // Kullanıcı düzenle
+  const handleEditUser = (userData) => {
+    setCurrentUser(userData);
+    setShowForm(true);
+  };
+  
+  // Form kapatma
+  const handleFormClose = () => {
+    setShowForm(false);
+    setCurrentUser(null);
+  };
+  
+  // Form gönderme (ekleme veya güncelleme)
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (currentUser) {
+        // Kullanıcı güncelleme
+        const response = await userService.updateUser(currentUser.id, formData);
+        if (response.status === 200 || response.status === 204) {
+          toast.success('Kullanıcı başarıyla güncellendi');
+          fetchUsers();
+          setShowForm(false);
+        }
+      } else {
+        // Yeni kullanıcı oluşturma
+        const response = await userService.createUser(formData);
+        if (response.status === 201 || response.status === 200) {
+          toast.success('Kullanıcı başarıyla oluşturuldu');
+          fetchUsers();
+          setShowForm(false);
+        }
+      }
+    } catch (err) {
+      console.error('Kullanıcı kayıt hatası:', err);
+      
+      if (err.response?.data?.detail) {
+        // Hata detayını göster
+        if (Array.isArray(err.response.data.detail)) {
+          toast.error(`Hata: ${err.response.data.detail[0].msg || 'İşlem başarısız oldu'}`);
+        } else {
+          toast.error(`Hata: ${err.response.data.detail}`);
+        }
+      } else {
+        toast.error('Kullanıcı kaydedilirken bir hata oluştu');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="user-list-loading">
@@ -203,7 +258,7 @@ const UserList = () => {
         </div>
         <button 
           className="add-user-button"
-          onClick={() => toast.info('Kullanıcı ekleme özelliği henüz eklenemedi.')}
+          onClick={handleAddUser}
           disabled={processing}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -214,7 +269,7 @@ const UserList = () => {
       {users.length === 0 ? (
         <div className="empty-state">
           <p>Henüz kullanıcı bulunmuyor</p>
-          <button onClick={() => toast.info('Kullanıcı ekleme özelliği henüz eklenemedi.')}>
+          <button onClick={handleAddUser}>
             <FontAwesomeIcon icon={faPlus} />
             <span>Kullanıcı Oluştur</span>
           </button>
@@ -277,7 +332,7 @@ const UserList = () => {
                     <div className="action-buttons">
                       <button 
                         className="edit-button"
-                        onClick={() => navigate(`/admin/users/${userData.id}/edit`)}
+                        onClick={() => handleEditUser(userData)}
                         disabled={processing}
                       >
                         <FontAwesomeIcon icon={faEdit} />
@@ -297,6 +352,15 @@ const UserList = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Kullanıcı Formu Modalı */}
+      {showForm && (
+        <UserForm 
+          user={currentUser}
+          onClose={handleFormClose}
+          onSubmit={handleFormSubmit}
+        />
       )}
     </div>
   );
