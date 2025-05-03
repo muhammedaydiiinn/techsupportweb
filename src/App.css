@@ -1,3 +1,97 @@
+:root {
+  /* Light tema değişkenleri */
+  --primary-color: #2563eb;
+  --secondary-color: #475569;
+  --background-color: #f8fafc;
+  --surface-color: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --error-color: #ef4444;
+  --success-color: #22c55e;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+}
+
+[data-theme="dark"] {
+  /* Dark tema değişkenleri */
+  --primary-color: #3b82f6;
+  --secondary-color: #94a3b8;
+  --background-color: #0f172a;
+  --surface-color: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border-color: #334155;
+  --error-color: #f87171;
+  --success-color: #4ade80;
+  --warning-color: #fbbf24;
+  --info-color: #60a5fa;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Toast bildirimleri için özel stiller */
+.Toastify__toast {
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.Toastify__toast--success {
+  border-left: 4px solid var(--success-color);
+}
+
+.Toastify__toast--error {
+  border-left: 4px solid var(--error-color);
+}
+
+.Toastify__toast--warning {
+  border-left: 4px solid var(--warning-color);
+}
+
+.Toastify__toast--info {
+  border-left: 4px solid var(--info-color);
+}
+
+/* Scrollbar stilleri */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
 .App {
   text-align: center;
 }
@@ -37,53 +131,187 @@
   }
 }
 
-.app {
-  min-height: 100vh;
-}
-
 .main-content {
-  padding-top: 64px;
-  min-height: calc(100vh - 64px);
-  transition: padding-left 0.3s ease;
+  margin-left: var(--sidebar-width);
+  padding: 20px;
+  transition: margin-left 0.3s ease;
 }
 
-.main-content.with-sidebar {
-  padding-left: 266px;
+.main-content.sidebar-collapsed {
+  margin-left: 0;
 }
 
-.main-content.with-sidebar.sidebar-collapsed {
-  padding-left: 16px;
-}
-
-/* Responsive styles */
 @media (max-width: 768px) {
-  .main-content.with-sidebar {
-    padding-left: 16px;
+  .main-content {
+    margin-left: 0;
+    padding: 15px;
   }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
-  .main-content.with-sidebar {
-    padding-left: 220px;
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.loading-spinner::after {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-/* Auth sayfaları için özel stil */
-.auth-page .main-content {
-  padding-left: 0 !important;
-}
-
-.placeholder-content {
-  padding: 2rem;
-  text-align: center;
-  color: var(--text);
-}
-
-.placeholder-content h2 {
+/* Form Styles */
+.form-group {
   margin-bottom: 1rem;
-  color: var(--primary);
 }
 
-.placeholder-content p {
-  color: var(--input-text);
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--text-color);
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover);
+}
+
+.btn-danger {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: var(--error-hover);
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Table Styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.table th {
+  background-color: var(--table-header-background);
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.table tr:hover {
+  background-color: var(--table-hover-background);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.badge-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.badge-error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.badge-warning {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.badge-info {
+  background-color: var(--info-color);
+  color: white;
 }

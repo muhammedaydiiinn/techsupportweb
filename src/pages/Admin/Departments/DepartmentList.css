@@ -1,0 +1,246 @@
+.department-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.department-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-right: 1.5rem;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.back-button:hover {
+  color: #000;
+}
+
+.back-button span {
+  margin-left: 0.5rem;
+}
+
+.department-list-header h1 {
+  display: flex;
+  align-items: center;
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+.department-list-header h1 svg {
+  margin-right: 0.75rem;
+  color: #3498db;
+}
+
+.add-department-button {
+  display: flex;
+  align-items: center;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-department-button:hover {
+  background-color: #2980b9;
+}
+
+.add-department-button svg {
+  margin-right: 0.5rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.empty-state p {
+  color: #777;
+  margin-bottom: 1rem;
+}
+
+.empty-state button {
+  display: flex;
+  align-items: center;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.empty-state button:hover {
+  background-color: #2980b9;
+}
+
+.empty-state button svg {
+  margin-right: 0.5rem;
+}
+
+.department-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.department-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.department-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.department-card-header {
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.department-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.department-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.department-actions button {
+  background: none;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  padding: 0.3rem;
+  transition: color 0.3s;
+}
+
+.edit-button:hover {
+  color: #3498db;
+}
+
+.delete-button:hover {
+  color: #e74c3c;
+}
+
+.department-card-body {
+  padding: 1rem;
+}
+
+.department-card-body p {
+  margin: 0 0 1rem 0;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.department-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.department-list-loading,
+.department-list-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.department-list-loading svg,
+.department-list-error svg {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.department-list-loading svg {
+  color: #3498db;
+}
+
+.department-list-error svg {
+  color: #e74c3c;
+}
+
+.department-list-error span {
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.department-list-error button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 768px) {
+  .department-list-container {
+    padding: 1rem;
+  }
+  
+  .department-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-left {
+    margin-bottom: 1rem;
+  }
+  
+  .add-department-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .department-grid {
+    grid-template-columns: 1fr;
+  }
+} 

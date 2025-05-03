@@ -36,7 +36,7 @@ const Login = () => {
 
     try {
       const response = await login(formData.email.trim(), formData.password);
-      
+
       if (response.success) {
         navigate('/dashboard', { replace: true });
       } else {

@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { adminService, ticketService } from '../../api';
+import { ticketService } from '../../services/ticketService';
+import { userService } from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './AssignTicketModal.css';
 
 const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
   const { user } = useAuth();
+  // eslint-disable-next-line no-unused-vars
   const [ticket, setTicket] = useState(null);
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [note, setNote] = useState('');
 
   useEffect(() => {
     if (isOpen && (!user || user.role !== 'admin')) {
@@ -22,28 +25,36 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
     }
 
     const fetchData = async () => {
+      // ticketId yoksa veya geçersizse işlem yapma
+      if (!ticketId || ticketId === 'undefined') {
+        toast.error('Geçersiz talep ID');
+        onClose();
+        return;
+      }
+
       try {
         setLoading(true);
         const [ticketResponse, usersResponse] = await Promise.all([
           ticketService.getTicketById(ticketId),
-          adminService.getUsers()
+          userService.getAllUsers()
         ]);
 
-        if (ticketResponse.success) {
+        if (ticketResponse && ticketResponse.status === 200 && ticketResponse.data) {
           setTicket(ticketResponse.data);
           if (ticketResponse.data.assigned_to) {
             setSelectedUserId(ticketResponse.data.assigned_to.id);
           }
         } else {
-          toast.error(ticketResponse.message || 'Talep detayları alınamadı');
+          toast.error('Talep detayları alınamadı');
         }
 
-        if (usersResponse.success) {
+        if (usersResponse && usersResponse.status === 200 && usersResponse.data) {
           setUsers(usersResponse.data);
         } else {
-          toast.error(usersResponse.message || 'Kullanıcı listesi alınamadı');
+          toast.error('Kullanıcı listesi alınamadı');
         }
       } catch (error) {
+        console.error('Veri yükleme hatası:', error);
         toast.error('Veriler yüklenirken bir hata oluştu');
       } finally {
         setLoading(false);
@@ -62,6 +73,12 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
       return;
     }
 
+    if (!ticketId || ticketId === 'undefined') {
+      toast.error('Geçersiz talep ID');
+      onClose();
+      return;
+    }
+
     if (!selectedUserId) {
       toast.warning('Lütfen bir kullanıcı seçin');
       return;
@@ -69,15 +86,16 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
 
     setAssigning(true);
     try {
-      const response = await adminService.assignTicket(ticketId, selectedUserId);
-      if (response.success) {
+      const response = await ticketService.assignTicket(ticketId, selectedUserId, note);
+      if (response && response.status === 200) {
         toast.success('Talep başarıyla atandı');
         onAssign();
         onClose();
       } else {
-        toast.error(response.message || 'Talep atama işlemi başarısız oldu');
+        toast.error('Talep atama işlemi başarısız oldu');
       }
     } catch (error) {
+      console.error('Atama hatası:', error);
       toast.error('Talep atama işlemi başarısız oldu');
     } finally {
       setAssigning(false);
@@ -88,41 +106,31 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="assign-modal">
+      <div className="modal-container">
         <div className="modal-header">
-          <h2>Talebi Ata</h2>
+          <h2>Talep Atama</h2>
           <button className="close-button" onClick={onClose}>
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
-
-        <div className="modal-content">
+        
+        <div className="modal-body">
           {loading ? (
             <div className="loading-spinner">
               <FontAwesomeIcon icon={faSpinner} spin />
-              <span>Yükleniyor...</span>
+              <p>Yükleniyor...</p>
             </div>
           ) : (
             <>
-              <div className="current-assignment">
-                <h3>Mevcut Atama:</h3>
-                {ticket?.assigned_to ? (
-                  <p>
-                    {ticket.assigned_to.first_name} {ticket.assigned_to.last_name} ({ticket.assigned_to.email})
-                  </p>
-                ) : (
-                  <p>Henüz kimseye atanmamış</p>
-                )}
-              </div>
               <div className="form-group">
-                <label htmlFor="user-select">Yeni Kullanıcı Seçin</label>
-                <select
+                <label htmlFor="user-select">Kullanıcı Seçin</label>
+                <select 
                   id="user-select"
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
                   disabled={assigning}
                 >
-                  <option value="">Seçiniz</option>
+                  <option value="">-- Kullanıcı seçin --</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.first_name} {user.last_name} ({user.email})
@@ -130,10 +138,21 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
                   ))}
                 </select>
               </div>
+
+              <div className="form-group">
+                <label htmlFor="note">Atama Notu (İsteğe Bağlı)</label>
+                <textarea
+                  id="note"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Atama hakkında not ekleyin..."
+                  disabled={assigning}
+                />
+              </div>
             </>
           )}
         </div>
-
+        
         <div className="modal-footer">
           <button 
             className="cancel-button" 
@@ -142,19 +161,16 @@ const AssignTicketModal = ({ isOpen, onClose, ticketId, onAssign }) => {
           >
             İptal
           </button>
-          <button
-            className="assign-button"
+          <button 
+            className="assign-button" 
             onClick={handleAssign}
-            disabled={!selectedUserId || assigning}
+            disabled={loading || assigning || !selectedUserId}
           >
             {assigning ? (
               <>
-                <FontAwesomeIcon icon={faSpinner} spin />
-                <span>Atanıyor...</span>
+                <FontAwesomeIcon icon={faSpinner} spin /> Atanıyor...
               </>
-            ) : (
-              'Ata'
-            )}
+            ) : 'Ata'}
           </button>
         </div>
       </div>

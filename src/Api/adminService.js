@@ -22,7 +22,7 @@ export const deleteTicket = async (ticketId) => {
       message: error.response?.data?.message || 'Talep silinirken bir hata oluştu'
     };
   }
-};
+}; 
 
 export const assignTicket = async (ticketId, userId) => {
   try {

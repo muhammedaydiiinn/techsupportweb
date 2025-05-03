@@ -65,7 +65,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Hoş geldiniz, {user?.name || 'Kullanıcı'}</h1>
+      <h1>Hoş geldiniz, {user?.name || 'Kullanıcı'}</h1>
         <p className="role-badge">{user?.role === 'ADMIN' ? 'Yönetici' : 'Kullanıcı'}</p>
       </div>
 

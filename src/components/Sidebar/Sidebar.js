@@ -1,99 +1,125 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome,
-  faTicket,
-  faUsers,
-  faChartLine,
-  faCog,
-  faPlus,
+  faTicketAlt,
   faList,
+  faPlus,
+  faUser,
+  faCog,
+  faSignOutAlt,
   faChevronDown,
-  faChevronRight
+  faChevronRight,
+  faTachometerAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen }) => {
+  const location = useLocation();
   const { user } = useAuth();
   const [isTicketsOpen, setIsTicketsOpen] = useState(false);
 
-  // Admin ve normal kullanıcı için ortak menü öğeleri
-  const commonMenuItems = [
-    { path: '/dashboard', icon: faHome, label: 'Dashboard' },
-    { 
-      path: '/tickets', 
-      icon: faTicket, 
-      label: 'Talepler',
-      submenu: [
-        { path: '/tickets/list', icon: faList, label: 'Taleplerim' },
-        { path: '/tickets/create', icon: faPlus, label: 'Yeni Talep' }
-      ]
-    }
-  ];
-
-  // Sadece admin için ek menü öğeleri
-  const adminMenuItems = [
-    { path: '/users', icon: faUsers, label: 'Kullanıcılar' },
-    { path: '/reports', icon: faChartLine, label: 'Raporlar' },
-    { path: '/settings', icon: faCog, label: 'Ayarlar' }
-  ];
-
-  // Kullanıcı rolüne göre menü öğelerini birleştir
-  const menuItems = user?.role === 'ADMIN' 
-    ? [...commonMenuItems, ...adminMenuItems]
-    : commonMenuItems;
-
-  const toggleSubmenu = (e, item) => {
-    if (item.submenu) {
-      e.preventDefault();
-      setIsTicketsOpen(!isTicketsOpen);
-    }
+  const toggleSubmenu = () => {
+    setIsTicketsOpen(!isTicketsOpen);
   };
 
+  const menuItems = [
+    {
+      path: '/dashboard',
+      icon: faHome,
+      label: 'Ana Sayfa'
+    },
+    { 
+      path: '/tickets', 
+      icon: faTicketAlt,
+      label: 'Talepler',
+      submenu: [
+        {
+          path: '/tickets',
+          icon: faList,
+          label: 'Tüm Talepler'
+    },
+        {
+          path: '/tickets/create',
+          icon: faPlus,
+          label: 'Yeni Talep'
+        }
+      ]
+    },
+    // Admin için Yönetim Paneli menü öğesi
+    ...(user?.role === 'admin' ? [
+      {
+        path: '/admin',
+        icon: faTachometerAlt,
+        label: 'Yönetim Paneli'
+      }
+    ] : []),
+    {
+      path: '/profile',
+      icon: faUser,
+      label: 'Profil'
+    },
+    {
+      path: '/settings',
+      icon: faCog,
+      label: 'Ayarlar'
+    }
+  ];
+
   return (
-    <div className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
-      <nav className="sidebar-nav">
+    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+      <div className="sidebar-header">
+        <h2>Tech Support</h2>
+      </div>
+      <div className="sidebar-menu">
         {menuItems.map((item, index) => (
-          <div key={index} className="menu-item">
-            <NavLink
-              to={item.path}
-              className={({ isActive }) => 
-                `sidebar-link ${isActive ? 'active' : ''}`
-              }
-              onClick={(e) => toggleSubmenu(e, item)}
+          <div key={index}>
+            {item.submenu ? (
+              <>
+                <div
+                  className={`menu-item ${location.pathname.startsWith(item.path) ? 'active' : ''}`}
+                  onClick={toggleSubmenu}
             >
-              <div className="sidebar-link-content">
                 <FontAwesomeIcon icon={item.icon} />
                 <span>{item.label}</span>
-              </div>
-              {item.submenu && (
                 <FontAwesomeIcon 
                   icon={isTicketsOpen ? faChevronDown : faChevronRight} 
-                  className="submenu-icon"
+                    style={{ marginLeft: 'auto' }}
                 />
-              )}
-            </NavLink>
-            {item.submenu && isTicketsOpen && (
+                </div>
+                {isTicketsOpen && (
               <div className="submenu">
                 {item.submenu.map((subItem, subIndex) => (
-                  <NavLink
+                      <Link
                     key={subIndex}
                     to={subItem.path}
-                    className={({ isActive }) => 
-                      `sidebar-link submenu-link ${isActive ? 'active' : ''}`
-                    }
+                        className={`submenu-item ${location.pathname === subItem.path ? 'active' : ''}`}
                   >
                     <FontAwesomeIcon icon={subItem.icon} />
                     <span>{subItem.label}</span>
-                  </NavLink>
+                      </Link>
                 ))}
               </div>
+                )}
+              </>
+            ) : (
+              <Link
+                to={item.path}
+                className={`menu-item ${location.pathname === item.path || location.pathname.startsWith(item.path + '/') ? 'active' : ''}`}
+              >
+                <FontAwesomeIcon icon={item.icon} />
+                <span>{item.label}</span>
+              </Link>
             )}
           </div>
         ))}
-      </nav>
+        <Link to="/logout" className="menu-item">
+          <FontAwesomeIcon icon={faSignOutAlt} />
+          <span>Çıkış Yap</span>
+        </Link>
+      </div>
     </div>
   );
 };

@@ -1,145 +1,71 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Header from './components/Header/Header';
-import Sidebar from './components/Sidebar/Sidebar';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import Layout from './components/Layout/Layout';
+import PrivateRoute from './components/PrivateRoute';
+import PublicRoute from './components/PublicRoute';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
-import Dashboard from './pages/Dashboard'; // Ana sayfa komponenti
-import CreateTicket from './pages/Tickets/CreateTicket';
+import Dashboard from './pages/Dashboard/Dashboard';
 import TicketList from './pages/Tickets/TicketList';
 import TicketDetail from './pages/Tickets/TicketDetail';
+import CreateTicket from './pages/Tickets/CreateTicket';
 import EditTicket from './pages/Tickets/EditTicket';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import Profile from './pages/Profile/Profile';
+import Settings from './pages/Settings/Settings';
+// Admin Sayfaları
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import DepartmentList from './pages/Admin/Departments/DepartmentList';
+import UserList from './pages/Admin/Users/UserList';
+import EquipmentList from './pages/Admin/Equipment/EquipmentList';
+import Statistics from './pages/Admin/Statistics/Statistics';
 import './App.css';
 
-// Giriş yapmış kullanıcıları auth sayfalarından koruma
-const PublicRoute = ({ children }) => {
-  const { user } = useAuth();
-  const location = useLocation();
-
-  if (user) {
-    return <Navigate to="/dashboard" state={{ from: location }} replace />;
-  }
-
-  return children;
-};
-
-// Giriş yapmamış kullanıcıları koruma
-const PrivateRoute = ({ children }) => {
-  const { user } = useAuth();
-  const location = useLocation();
-
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return children;
-};
-
-const AppContent = () => {
-  const { user } = useAuth();
-  const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  
-  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password']
-    .includes(location.pathname);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
+function App() {
   return (
-    <div className="app">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-      <Header onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-      {user && !isAuthPage && (
-        <Sidebar isOpen={isSidebarOpen} />
-      )}
-      <main className={`main-content ${user && !isAuthPage ? 'with-sidebar' : ''} ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          } />
-          <Route path="/register" element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          } />
-          <Route path="/forgot-password" element={
-            <PublicRoute>
-              <ForgotPassword />
-            </PublicRoute>
-          } />
-          <Route path="/reset-password" element={
-            <PublicRoute>
-              <ResetPassword />
-            </PublicRoute>
-          } />
-
-          {/* Private Routes */}
-          <Route path="/dashboard" element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } />
-          <Route path="/tickets/create" element={
-            <PrivateRoute>
-              <CreateTicket />
-            </PrivateRoute>
-          } />
-          <Route path="/tickets/list" element={
-            <PrivateRoute>
-              <TicketList />
-            </PrivateRoute>
-          } />
-          <Route path="/tickets/:ticketId" element={
-            <PrivateRoute>
-              <TicketDetail />
-            </PrivateRoute>
-          } />
-          <Route path="/tickets/:ticketId/edit" element={
-            <PrivateRoute>
-              <EditTicket />
-            </PrivateRoute>
-          } />
-
-          {/* Root yönlendirmesi */}
-          <Route path="/" element={
-            user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
-          } />
-        </Routes>
-      </main>
-    </div>
-  );
-};
-
-const App = () => {
-  return (
-    <Router> {/* Router en dışta olacak */}
+    <ThemeProvider>
       <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
-  );
-};
+        <Router>
+          <div className="app">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+              <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+              <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
+              {/* Private Routes */}
+              <Route element={<PrivateRoute><Layout /></PrivateRoute>}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/tickets" element={<TicketList />} />
+                <Route path="/tickets/create" element={<CreateTicket />} />
+                <Route path="/tickets/:id" element={<TicketDetail />} />
+                <Route path="/tickets/:id/edit" element={<EditTicket />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/departments" element={<DepartmentList />} />
+                <Route path="/admin/users" element={<UserList />} />
+                <Route path="/admin/equipment" element={<EquipmentList />} />
+                <Route path="/admin/statistics" element={<Statistics />} />
+              </Route>
+
+              {/* Root Redirect */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+            <ToastContainer position="top-right" autoClose={3000} />
+          </div>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
 
 export default App;

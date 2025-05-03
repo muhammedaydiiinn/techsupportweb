@@ -1,26 +1,141 @@
 .header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 1.5rem;
-  z-index: 1000;
+  padding: 1rem;
+  background-color: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  height: 64px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .header-right {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+.toggle-button,
+.theme-toggle,
+.notification-button,
+.user-button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.toggle-button:hover,
+.theme-toggle:hover,
+.notification-button:hover,
+.user-button:hover {
+  background-color: var(--background-color);
+}
+
+.notification-button {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--error-color);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem;
+  border-radius: 50%;
+  min-width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.user-button:hover {
+  background-color: var(--background-color);
+}
+
+.dropdown-arrow {
+  font-size: 0.8rem;
+  margin-left: 0.25rem;
+  transition: transform 0.2s;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  animation: dropdown-appear 0.2s ease;
+}
+
+@keyframes dropdown-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-dropdown button:hover {
+  background-color: var(--background-color);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem;
+  }
+
+  .user-button span {
+    display: none;
+  }
 }
 
 .logo {
@@ -57,38 +172,6 @@
 .user-icon {
   font-size: 1.25rem;
   color: var(--primary);
-}
-
-.dropdown-arrow {
-  transition: transform 0.2s ease;
-}
-
-.dropdown-arrow.open {
-  transform: rotate(180deg);
-}
-
-.user-menu {
-  display: block;
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  min-width: 250px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  padding: 0.5rem 0.5rem;
-  z-index: 1001;
-}
-
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 .dropdown-header {
@@ -184,7 +267,6 @@
   transition: all 0.2s ease;
 }
 
-
 .user-name {
   margin: 0 0.5rem;
 }
@@ -192,31 +274,6 @@
 .dropdown-header .fa-user {
   font-size: 1.5rem;
   color: var(--primary);
-}
-
-@media (max-width: 768px) {
-  .header {
-    padding: 0 1rem;
-  }
-
-  .logo {
-    font-size: 1.1rem;
-  }
-
-  .sidebar-toggle {
-    width: 36px;
-    height: 36px;
-    margin-left: 0.75rem;
-  }
-
-  .user-name {
-    display: none;
-  }
-  
-  .user-menu {
-    right: -1rem;
-    min-width: 260px;
-  }
 }
 
 /* Tablet için ek medya sorgusu */

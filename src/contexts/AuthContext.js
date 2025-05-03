@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../api';
+import { toast } from 'react-toastify';
 
 const AuthContext = createContext();
 
@@ -30,13 +31,41 @@ export const AuthProvider = ({ children }) => {
 
       const response = await authService.getProfile();
       if (response.success) {
-        setUser(response.data);
+        console.log('Kullanıcı profili:', response.data);
+        
+        // API'den gelen rol bilgisini kontrol et
+        const roleFromAPI = response.data.role || '';
+        console.log('API\'den gelen rol:', roleFromAPI);
+        
+        // Rol normalizasyonu
+        let normalizedRole = roleFromAPI;
+        
+        // Eğer API'den boş rol geldiyse veya rol yoksa, varsayılan olarak 'user' atayalım
+        if (!normalizedRole) {
+          normalizedRole = 'user';
+        }
+        // Rol 'admin' veya 'ADMIN' içeriyorsa admin olarak kabul et
+        else if (roleFromAPI === 'admin' || roleFromAPI.includes('ADMIN')) {
+          normalizedRole = 'admin';
+          console.log('Admin rolü tespit edildi');
+        }
+        
+        const userData = {
+          ...response.data,
+          role: normalizedRole // Normalize edilmiş rol
+        };
+        
+        console.log('Normalize edilmiş kullanıcı rolü:', normalizedRole);
+        setUser(userData);
       } else {
         localStorage.removeItem('access_token');
+        toast.error('Kullanıcı bilgileri alınamadı');
       }
     } catch (err) {
+      console.error('Kimlik doğrulama hatası:', err);
       setError('Kimlik doğrulama hatası');
       localStorage.removeItem('access_token');
+      toast.error('Oturum bilgileri alınamadı, lütfen tekrar giriş yapın');
     } finally {
       setLoading(false);
     }
@@ -48,12 +77,7 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         localStorage.setItem('access_token', response.data.access_token);
         
-        const userData = {
-          email: email,
-          name: response.data.name || email.split('@')[0],
-          role: response.data.role || 'USER'
-        };
-        setUser(userData);
+        await checkAuthStatus();
         
         return { success: true };
       } else {
@@ -77,7 +101,8 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
-    checkAuthStatus
+    checkAuthStatus,
+    isAuthenticated: !!user
   };
 
   return (

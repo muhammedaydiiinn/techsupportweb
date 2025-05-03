@@ -68,7 +68,7 @@ api.interceptors.response.use(
       data: error.response?.data,
       message: error.response?.data?.detail || error.message
     };
-
+    
     return Promise.reject({
       ...error,
       api: errorData
@@ -94,7 +94,7 @@ export const authService = {
       });
 
       if (response.data.access_token) {
-        localStorage.setItem('access_token', response.data.access_token);
+      localStorage.setItem('access_token', response.data.access_token);
         toast.success('Başarıyla giriş yapıldı');
       }
 
@@ -179,11 +179,19 @@ export const authService = {
   getProfile: async () => {
     try {
       const response = await api.get('/auth/me');
+      
+      // Kullanıcı rolünü loglama
+      console.log('API getProfile yanıtı:', response.data);
+      if (response.data.role) {
+        console.log('API\'den gelen rol bilgisi:', response.data.role);
+      }
+      
       return {
         success: true,
         data: response.data
       };
     } catch (error) {
+      console.error('Profil bilgileri alma hatası:', error);
       toast.error(error.response?.data?.detail || 'Profil bilgileri alınamadı');
       return {
         success: false,

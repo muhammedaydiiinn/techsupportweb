@@ -7,7 +7,7 @@ import {
   faTimes,
   faArrowLeft
 } from '@fortawesome/free-solid-svg-icons';
-import { ticketService, adminService } from '../../api';
+import { ticketService } from '../../services/ticketService';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import '../../styles/tickets.css';
@@ -34,14 +34,13 @@ const CreateTicket = () => {
         setLoading(true);
         
         if (user.role === 'admin') {
-          const departmentsResponse = await adminService.getDepartments();
-          if (departmentsResponse.success) {
-            setDepartments(departmentsResponse.data);
-          }
+          setDepartments([]);
         }
         
       } catch (err) {
-        setError('Veriler yüklenirken bir hata oluştu');
+        console.error('Veri yükleme hatası:', err);
+        setError(typeof err === 'string' ? err : 
+          (err.message || 'Veriler yüklenirken bir hata oluştu'));
         toast.error('Veriler yüklenirken bir hata oluştu');
       } finally {
         setLoading(false);
@@ -56,16 +55,58 @@ const CreateTicket = () => {
     setSaving(true);
 
     try {
-      const response = await ticketService.createTicket(formData);
-      if (response.success) {
-        toast.success('Talep başarıyla oluşturuldu');
-        navigate(`/tickets/${response.data.id}`);
+      // Dosya ekleri varsa FormData kullanarak göndermeliyiz
+      const hasAttachments = formData.attachments && formData.attachments.length > 0;
+      
+      let requestData;
+      let response;
+      
+      if (hasAttachments) {
+        // FormData oluştur
+        requestData = new FormData();
+        
+        // Form verilerini ekle
+        requestData.append('title', formData.title);
+        requestData.append('description', formData.description);
+        requestData.append('category', formData.category);
+        requestData.append('priority', formData.priority);
+        
+        if (formData.department_id) {
+          requestData.append('department_id', formData.department_id);
+        }
+        
+        // Dosyaları ekle
+        formData.attachments.forEach((file, index) => {
+          requestData.append(`attachments[${index}]`, file);
+        });
+        
+        // Multipart/form-data olarak gönder
+        response = await ticketService.createTicket(requestData);
       } else {
-        setError(response.message);
-        toast.error(response.message);
+        // Dosya yoksa normal JSON olarak gönder
+        const dataToSend = {
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          priority: formData.priority,
+          department_id: formData.department_id || undefined
+        };
+        
+        response = await ticketService.createTicket(dataToSend);
+      }
+      
+      if (response && response.status >= 200 && response.status < 300 && response.data) {
+        toast.success('Talep başarıyla oluşturuldu');
+        // Oluşturulan ticket ID'si ile detay sayfasına yönlendirme
+        navigate(`/tickets/${response.data.id || 'error'}`);
+      } else {
+        setError('Talep oluşturulamadı');
+        toast.error('Talep oluşturulamadı');
       }
     } catch (err) {
-      setError('Talep oluşturulurken bir hata oluştu');
+      console.error('Talep oluşturma hatası:', err);
+      setError(typeof err === 'string' ? err : 
+        (err.message || 'Talep oluşturulurken bir hata oluştu'));
       toast.error('Talep oluşturulurken bir hata oluştu');
     } finally {
       setSaving(false);
@@ -120,7 +161,7 @@ const CreateTicket = () => {
       <div className="create-ticket-header">
         <button 
           className="back-button"
-          onClick={() => navigate('/tickets/list')}
+          onClick={() => navigate('/tickets')}
         >
           <FontAwesomeIcon icon={faArrowLeft} />
           <span>Geri</span>
@@ -133,18 +174,18 @@ const CreateTicket = () => {
           {error}
         </div>
       )}
-
+        
       <form onSubmit={handleSubmit} className="create-ticket-form">
-        <div className="form-group">
+          <div className="form-group">
           <label htmlFor="title">Başlık</label>
-          <input
-            type="text"
-            id="title"
-            value={formData.title}
+            <input
+              type="text"
+              id="title"
+              value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            required
-          />
-        </div>
+              required
+            />
+          </div>
 
         <div className="form-group">
           <label htmlFor="description">Açıklama</label>
@@ -190,7 +231,7 @@ const CreateTicket = () => {
           </div>
 
           {user.role === 'admin' && (
-            <div className="form-group">
+          <div className="form-group">
               <label htmlFor="department">Departman</label>
               <select
                 id="department"
@@ -206,47 +247,47 @@ const CreateTicket = () => {
               </select>
             </div>
           )}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="attachments">Dosya Ekle (Maks. 5MB)</label>
-          <div className="file-upload">
-            <input
-              type="file"
-              id="attachments"
-              onChange={handleFileChange}
-              multiple
-              className="file-input"
-              accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
-            />
-            <label htmlFor="attachments" className="file-label">
-              <FontAwesomeIcon icon={faPaperclip} />
-              <span>Dosya Seç</span>
-            </label>
           </div>
-          {formData.attachments.length > 0 && (
-            <div className="attachments-list">
-              {formData.attachments.map((file, index) => (
-                <div key={index} className="attachment-item">
-                  <span>{file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)</span>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(index)}
-                    className="remove-attachment"
-                  >
-                    <FontAwesomeIcon icon={faTimes} />
-                  </button>
-                </div>
-              ))}
+
+          <div className="form-group">
+          <label htmlFor="attachments">Dosya Ekle (Maks. 5MB)</label>
+            <div className="file-upload">
+              <input
+                type="file"
+                id="attachments"
+                onChange={handleFileChange}
+                multiple
+                className="file-input"
+              accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
+              />
+              <label htmlFor="attachments" className="file-label">
+                <FontAwesomeIcon icon={faPaperclip} />
+                <span>Dosya Seç</span>
+              </label>
             </div>
-          )}
-        </div>
+            {formData.attachments.length > 0 && (
+              <div className="attachments-list">
+                {formData.attachments.map((file, index) => (
+                  <div key={index} className="attachment-item">
+                  <span>{file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(index)}
+                      className="remove-attachment"
+                    >
+                      <FontAwesomeIcon icon={faTimes} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
         <div className="form-actions">
           <button 
             type="button" 
             className="cancel-button"
-            onClick={() => navigate('/tickets/list')}
+            onClick={() => navigate('/tickets')}
           >
             İptal
           </button>
@@ -265,7 +306,7 @@ const CreateTicket = () => {
             )}
           </button>
         </div>
-      </form>
+        </form>
     </div>
   );
 };
