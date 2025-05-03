@@ -21,8 +21,29 @@ const Sidebar = ({ isOpen }) => {
   const { user } = useAuth();
   const [isTicketsOpen, setIsTicketsOpen] = useState(false);
 
+  // URL'e göre alt menü durumunu belirle
+  React.useEffect(() => {
+    // Tickets alt menüsüne ait bir sayfadaysak, alt menüyü otomatik olarak aç
+    if (location.pathname.startsWith('/tickets')) {
+      setIsTicketsOpen(true);
+    }
+  }, [location.pathname]);
+
   const toggleSubmenu = () => {
     setIsTicketsOpen(!isTicketsOpen);
+  };
+
+  // URL'in belirli bir yolda olup olmadığını kontrol et
+  const isPathActive = (path) => {
+    if (path === '/dashboard') {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  // Aktif bağlantı kontrolü - tam eşleşme
+  const isExactPathActive = (path) => {
+    return location.pathname === path;
   };
 
   const menuItems = [
@@ -79,35 +100,35 @@ const Sidebar = ({ isOpen }) => {
             {item.submenu ? (
               <>
                 <div
-                  className={`menu-item ${location.pathname.startsWith(item.path) ? 'active' : ''}`}
+                  className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
                   onClick={toggleSubmenu}
-            >
-                <FontAwesomeIcon icon={item.icon} />
-                <span>{item.label}</span>
-                <FontAwesomeIcon 
-                  icon={isTicketsOpen ? faChevronDown : faChevronRight} 
+                >
+                  <FontAwesomeIcon icon={item.icon} />
+                  <span>{item.label}</span>
+                  <FontAwesomeIcon 
+                    icon={isTicketsOpen ? faChevronDown : faChevronRight} 
                     style={{ marginLeft: 'auto' }}
-                />
+                  />
                 </div>
                 {isTicketsOpen && (
-              <div className="submenu">
-                {item.submenu.map((subItem, subIndex) => (
+                  <div className="submenu">
+                    {item.submenu.map((subItem, subIndex) => (
                       <Link
-                    key={subIndex}
-                    to={subItem.path}
-                        className={`submenu-item ${location.pathname === subItem.path ? 'active' : ''}`}
-                  >
-                    <FontAwesomeIcon icon={subItem.icon} />
-                    <span>{subItem.label}</span>
+                        key={subIndex}
+                        to={subItem.path}
+                        className={`submenu-item ${isExactPathActive(subItem.path) ? 'active' : ''}`}
+                      >
+                        <FontAwesomeIcon icon={subItem.icon} />
+                        <span>{subItem.label}</span>
                       </Link>
-                ))}
-              </div>
+                    ))}
+                  </div>
                 )}
               </>
             ) : (
               <Link
                 to={item.path}
-                className={`menu-item ${location.pathname === item.path || location.pathname.startsWith(item.path + '/') ? 'active' : ''}`}
+                className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
               >
                 <FontAwesomeIcon icon={item.icon} />
                 <span>{item.label}</span>

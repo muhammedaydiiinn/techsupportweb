@@ -1,10 +1,36 @@
 import axiosInstance from './axiosConfig';
 
+// Ekipman tipleri enum
+export const equipmentTypes = [
+  { value: "computer", label: "Bilgisayar" },
+  { value: "laptop", label: "Dizüstü Bilgisayar" },
+  { value: "monitor", label: "Monitör" },
+  { value: "printer", label: "Yazıcı" },
+  { value: "server", label: "Sunucu" },
+  { value: "network_device", label: "Ağ Cihazı" },
+  { value: "mobile_device", label: "Mobil Cihaz" },
+  { value: "peripheral", label: "Çevre Birimi" },
+  { value: "software", label: "Yazılım" },
+  { value: "other", label: "Diğer" }
+];
+
+// Ekipman durumları enum
+export const equipmentStatuses = [
+  { value: "active", label: "Aktif" },
+  { value: "maintenance", label: "Bakımda" },
+  { value: "repair", label: "Tamirde" },
+  { value: "broken", label: "Arızalı" },
+  { value: "retired", label: "Kullanım Dışı" }
+];
+
 const equipmentService = {
   // Tüm ekipmanları getir
   getAllEquipment: async (params = {}) => {
     try {
-      const response = await axiosInstance.get(`/equipment`, { params });
+      // Sayfalama, filtreleme ve sıralama parametreleri
+      const queryParams = { ...params };
+      
+      const response = await axiosInstance.get(`/equipment`, { params: queryParams });
       return response;
     } catch (error) {
       console.error('Ekipmanlar getirilirken hata:', error);
@@ -26,7 +52,22 @@ const equipmentService = {
   // Yeni ekipman oluştur
   createEquipment: async (equipmentData) => {
     try {
-      const response = await axiosInstance.post(`/equipment`, equipmentData);
+      // API'nin beklediği formatta veri gönderilmesini sağla
+      const data = {
+        name: equipmentData.name,
+        description: equipmentData.description || '',
+        equipment_type: equipmentData.equipment_type || 'computer',
+        status: equipmentData.status || 'active',
+        serial_number: equipmentData.serial_number || '',
+        model: equipmentData.model || '',
+        manufacturer: equipmentData.manufacturer || '',
+        purchase_date: equipmentData.purchase_date || null,
+        warranty_expiry: equipmentData.warranty_expiry || null,
+        department_id: equipmentData.department_id, // Zorunlu alan
+        assigned_to_id: equipmentData.assigned_to_id === '' ? null : equipmentData.assigned_to_id
+      };
+      
+      const response = await axiosInstance.post(`/equipment`, data);
       return response;
     } catch (error) {
       console.error('Ekipman oluşturulurken hata:', error);
@@ -37,7 +78,25 @@ const equipmentService = {
   // Ekipman bilgilerini güncelle
   updateEquipment: async (id, equipmentData) => {
     try {
-      const response = await axiosInstance.put(`/equipment/${id}`, equipmentData);
+      // Sadece güncellenecek alanları içeren veri oluştur
+      const data = {};
+      
+      if (equipmentData.name !== undefined) data.name = equipmentData.name;
+      if (equipmentData.description !== undefined) data.description = equipmentData.description;
+      if (equipmentData.equipment_type !== undefined) data.equipment_type = equipmentData.equipment_type;
+      if (equipmentData.status !== undefined) data.status = equipmentData.status;
+      if (equipmentData.serial_number !== undefined) data.serial_number = equipmentData.serial_number;
+      if (equipmentData.model !== undefined) data.model = equipmentData.model;
+      if (equipmentData.manufacturer !== undefined) data.manufacturer = equipmentData.manufacturer;
+      if (equipmentData.purchase_date !== undefined) data.purchase_date = equipmentData.purchase_date;
+      if (equipmentData.warranty_expiry !== undefined) data.warranty_expiry = equipmentData.warranty_expiry;
+      if (equipmentData.department_id !== undefined) data.department_id = equipmentData.department_id;
+      if (equipmentData.assigned_to_id !== undefined) {
+        // Boş string ise null olarak gönder, API UUID bekliyor
+        data.assigned_to_id = equipmentData.assigned_to_id === '' ? null : equipmentData.assigned_to_id;
+      }
+      
+      const response = await axiosInstance.put(`/equipment/${id}`, data);
       return response;
     } catch (error) {
       console.error('Ekipman güncellenirken hata:', error);
@@ -78,10 +137,22 @@ const equipmentService = {
     }
   },
 
+  // Ekipman kullanıcı ataması
+  assignEquipmentToUser: async (equipmentId, userId) => {
+    try {
+      const response = await axiosInstance.put(`/equipment/${equipmentId}/assign`, { user_id: userId });
+      return response;
+    } catch (error) {
+      console.error('Ekipman kullanıcı ataması yapılırken hata:', error);
+      throw error;
+    }
+  },
+
   // Departmana göre ekipman listesini getir
   getEquipmentByDepartment: async (departmentId, params = {}) => {
     try {
-      const response = await axiosInstance.get(`/departments/${departmentId}/equipment`, { params });
+      const queryParams = { ...params, department_id: departmentId };
+      const response = await axiosInstance.get(`/equipment`, { params: queryParams });
       return response;
     } catch (error) {
       console.error('Departman ekipmanları getirilirken hata:', error);
