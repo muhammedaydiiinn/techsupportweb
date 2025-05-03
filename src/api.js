@@ -127,10 +127,33 @@ export const authService = {
         data: response.data
       };
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Kayıt işlemi başarısız oldu');
+      console.error('Kayıt hatası:', error.response?.data);
+      
+      // Hatanın tipini kontrol et ve uygun mesaj döndür
+      let errorMessage = 'Kayıt işlemi başarısız oldu';
+      
+      if (error.response?.data?.detail) {
+        // detail bir array olabilir
+        if (Array.isArray(error.response.data.detail)) {
+          // İlk hatayı al
+          const firstError = error.response.data.detail[0];
+          if (firstError.msg) {
+            if (firstError.loc && firstError.loc.includes("password_confirm") && firstError.type === "missing") {
+              errorMessage = "Şifre tekrarı gereklidir";
+            } else {
+              errorMessage = firstError.msg;
+            }
+          }
+        } else if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        }
+      }
+      
+      toast.error(errorMessage);
+      
       return {
         success: false,
-        message: error.response?.data?.detail || 'Kayıt işlemi başarısız oldu',
+        message: errorMessage,
         error: error.response?.data
       };
     }

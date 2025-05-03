@@ -7,6 +7,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import PublicRoute from './components/PublicRoute';
+import AdminRoute from './components/AdminRoute';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
@@ -50,11 +51,11 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 
                 {/* Admin Routes */}
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/departments" element={<DepartmentList />} />
-                <Route path="/admin/users" element={<UserList />} />
-                <Route path="/admin/equipment" element={<EquipmentList />} />
-                <Route path="/admin/statistics" element={<Statistics />} />
+                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                <Route path="/admin/departments" element={<AdminRoute><DepartmentList /></AdminRoute>} />
+                <Route path="/admin/users" element={<AdminRoute><UserList /></AdminRoute>} />
+                <Route path="/admin/equipment" element={<AdminRoute><EquipmentList /></AdminRoute>} />
+                <Route path="/admin/statistics" element={<AdminRoute><Statistics /></AdminRoute>} />
               </Route>
 
               {/* Root Redirect */}

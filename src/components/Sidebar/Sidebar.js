@@ -13,12 +13,11 @@ import {
   faChevronRight,
   faTachometerAlt
 } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../../contexts/AuthContext';
+import PermissionGate from '../PermissionGate';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen }) => {
   const location = useLocation();
-  const { user } = useAuth();
   const [isTicketsOpen, setIsTicketsOpen] = useState(false);
 
   // URL'e göre alt menü durumunu belirle
@@ -61,7 +60,7 @@ const Sidebar = ({ isOpen }) => {
           path: '/tickets',
           icon: faList,
           label: 'Tüm Talepler'
-    },
+        },
         {
           path: '/tickets/create',
           icon: faPlus,
@@ -69,14 +68,12 @@ const Sidebar = ({ isOpen }) => {
         }
       ]
     },
-    // Admin için Yönetim Paneli menü öğesi
-    ...(user?.role === 'admin' ? [
-      {
-        path: '/admin',
-        icon: faTachometerAlt,
-        label: 'Yönetim Paneli'
-      }
-    ] : []),
+    {
+      path: '/admin',
+      icon: faTachometerAlt,
+      label: 'Yönetim Paneli',
+      requiredPermission: 'isAdmin'
+    },
     {
       path: '/profile',
       icon: faUser,
@@ -97,42 +94,86 @@ const Sidebar = ({ isOpen }) => {
       <div className="sidebar-menu">
         {menuItems.map((item, index) => (
           <div key={index}>
-            {item.submenu ? (
+            {item.requiredPermission ? (
+              <PermissionGate permission={item.requiredPermission}>
+                {item.submenu ? (
+                  <>
+                    <div
+                      className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
+                      onClick={toggleSubmenu}
+                    >
+                      <FontAwesomeIcon icon={item.icon} />
+                      <span>{item.label}</span>
+                      <FontAwesomeIcon 
+                        icon={isTicketsOpen ? faChevronDown : faChevronRight} 
+                        style={{ marginLeft: 'auto' }}
+                      />
+                    </div>
+                    {isTicketsOpen && (
+                      <div className="submenu">
+                        {item.submenu.map((subItem, subIndex) => (
+                          <Link
+                            key={subIndex}
+                            to={subItem.path}
+                            className={`submenu-item ${isExactPathActive(subItem.path) ? 'active' : ''}`}
+                          >
+                            <FontAwesomeIcon icon={subItem.icon} />
+                            <span>{subItem.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
+                  >
+                    <FontAwesomeIcon icon={item.icon} />
+                    <span>{item.label}</span>
+                  </Link>
+                )}
+              </PermissionGate>
+            ) : (
               <>
-                <div
-                  className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
-                  onClick={toggleSubmenu}
-                >
-                  <FontAwesomeIcon icon={item.icon} />
-                  <span>{item.label}</span>
-                  <FontAwesomeIcon 
-                    icon={isTicketsOpen ? faChevronDown : faChevronRight} 
-                    style={{ marginLeft: 'auto' }}
-                  />
-                </div>
-                {isTicketsOpen && (
-                  <div className="submenu">
-                    {item.submenu.map((subItem, subIndex) => (
-                      <Link
-                        key={subIndex}
-                        to={subItem.path}
-                        className={`submenu-item ${isExactPathActive(subItem.path) ? 'active' : ''}`}
-                      >
-                        <FontAwesomeIcon icon={subItem.icon} />
-                        <span>{subItem.label}</span>
-                      </Link>
-                    ))}
-                  </div>
+                {item.submenu ? (
+                  <>
+                    <div
+                      className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
+                      onClick={toggleSubmenu}
+                    >
+                      <FontAwesomeIcon icon={item.icon} />
+                      <span>{item.label}</span>
+                      <FontAwesomeIcon 
+                        icon={isTicketsOpen ? faChevronDown : faChevronRight} 
+                        style={{ marginLeft: 'auto' }}
+                      />
+                    </div>
+                    {isTicketsOpen && (
+                      <div className="submenu">
+                        {item.submenu.map((subItem, subIndex) => (
+                          <Link
+                            key={subIndex}
+                            to={subItem.path}
+                            className={`submenu-item ${isExactPathActive(subItem.path) ? 'active' : ''}`}
+                          >
+                            <FontAwesomeIcon icon={subItem.icon} />
+                            <span>{subItem.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
+                  >
+                    <FontAwesomeIcon icon={item.icon} />
+                    <span>{item.label}</span>
+                  </Link>
                 )}
               </>
-            ) : (
-              <Link
-                to={item.path}
-                className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
-              >
-                <FontAwesomeIcon icon={item.icon} />
-                <span>{item.label}</span>
-              </Link>
             )}
           </div>
         ))}

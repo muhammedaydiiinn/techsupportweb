@@ -87,6 +87,7 @@
   color: var(--input-text);
   font-size: 20px;
   transition: all 0.3s ease;
+  z-index: 1;
 }
 
 .input-container:focus-within .input-icon {

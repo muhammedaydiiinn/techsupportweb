@@ -65,8 +65,9 @@ const Register = () => {
       const response = await authService.register({
         email: formData.email.trim(),
         password: formData.password,
-        name: formData.name.trim(),
-        surname: formData.surname.trim()
+        password_confirm: formData.password_confirm,
+        first_name: formData.name.trim(),
+        last_name: formData.surname.trim()
       });
 
       if (response.success) {
@@ -78,6 +79,7 @@ const Register = () => {
         setError(response.message);
       }
     } catch (err) {
+      console.error('Kayıt hatası:', err);
       setError(err.message || 'Kayıt işlemi başarısız oldu.');
     } finally {
       setLoading(false);
@@ -168,7 +170,7 @@ const Register = () => {
           {error && (
             <div className="error-message">
               <FontAwesomeIcon icon={faExclamationCircle} />
-              {error}
+              <span>{typeof error === 'string' ? error : 'Kayıt işlemi başarısız oldu'}</span>
             </div>
           )}
           

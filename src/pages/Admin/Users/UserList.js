@@ -8,19 +8,19 @@ import {
   faTrash,
   faSpinner,
   faArrowLeft,
-  faExclamationCircle,
-  faCheckCircle,
-  faTimesCircle
+  faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { userService } from '../../../services/userService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './UserList.css';
+import { departmentService } from '../../../services/departmentService';
 
 const UserList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -54,10 +54,24 @@ const UserList = () => {
     }
   };
 
+  // Departmanları getir
+  const fetchDepartments = async () => {
+    try {
+      const response = await departmentService.getAllDepartments();
+      if (response && response.data) {
+        setDepartments(response.data);
+      }
+    } catch (err) {
+      console.error('Departman listesi yüklenirken hata:', err);
+      toast.error('Departmanlar yüklenirken bir hata oluştu');
+    }
+  };
+
   useEffect(() => {
-    // Eğer kullanıcı admin ise kullanıcıları getir
+    // Eğer kullanıcı admin ise kullanıcıları ve departmanları getir
     if (user && user.role === 'admin') {
       fetchUsers();
+      fetchDepartments();
     }
   }, [user]);
 
@@ -92,36 +106,7 @@ const UserList = () => {
     }
   };
 
-  // Kullanıcı durum değiştir (aktif/pasif)
-  const handleStatusChange = async (userId, isActive) => {
-    if (user?.role !== 'admin') {
-      toast.error('Bu işlem için admin yetkisi gerekiyor');
-      return;
-    }
 
-    // Kendini pasif yapmaya çalışıyorsa engelle
-    if (userId === user.id && !isActive) {
-      toast.error('Kendi hesabınızı pasif yapamazsınız');
-      return;
-    }
-
-    try {
-      setProcessing(true);
-      const response = await userService.updateUserStatus(userId, isActive);
-      
-      if (response.status === 200 || response.status === 204) {
-        toast.success(`Kullanıcı ${isActive ? 'aktifleştirildi' : 'pasifleştirildi'}`);
-        fetchUsers(); // Listeyi yenile
-      } else {
-        toast.error('Durum değiştirme işlemi başarısız oldu');
-      }
-    } catch (err) {
-      console.error('Durum değiştirme hatası:', err);
-      toast.error(err.response?.data?.detail || 'Durum değiştirme işlemi başarısız oldu');
-    } finally {
-      setProcessing(false);
-    }
-  };
 
   // Kullanıcı sil
   const handleDeleteUser = async (userId, name) => {
@@ -153,6 +138,31 @@ const UserList = () => {
       } finally {
         setProcessing(false);
       }
+    }
+  };
+
+  // Kullanıcı departmanını güncelle
+  const handleDepartmentChange = async (userId, departmentId) => {
+    if (user?.role !== 'admin') {
+      toast.error('Bu işlem için admin yetkisi gerekiyor');
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      const response = await userService.updateUserDepartment(userId, departmentId);
+      
+      if (response.status === 200 || response.status === 204) {
+        toast.success('Kullanıcı departmanı güncellendi');
+        fetchUsers(); // Listeyi yenile
+      } else {
+        toast.error('Departman değiştirme işlemi başarısız oldu');
+      }
+    } catch (err) {
+      console.error('Departman değiştirme hatası:', err);
+      toast.error(err.response?.data?.detail || 'Departman değiştirme işlemi başarısız oldu');
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -219,7 +229,6 @@ const UserList = () => {
                 <th>E-posta</th>
                 <th>Departman</th>
                 <th>Rol</th>
-                <th>Durum</th>
                 <th>İşlemler</th>
               </tr>
             </thead>
@@ -229,7 +238,23 @@ const UserList = () => {
                   <td>{userData.id}</td>
                   <td>{userData.first_name} {userData.last_name}</td>
                   <td>{userData.email}</td>
-                  <td>{userData.department?.name || '-'}</td>
+                  <td>
+                    {user?.role === 'admin' ? (
+                      <select
+                        value={userData.department?.id || ''}
+                        onChange={(e) => handleDepartmentChange(userData.id, e.target.value || null)}
+                        className="department-select"
+                        disabled={processing}
+                      >
+                        <option value="">Departmansız</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span>{userData.department?.name || 'Departmansız'}</span>
+                    )}
+                  </td>
                   <td>
                     {user?.role === 'admin' ? (
                       <select
@@ -245,32 +270,6 @@ const UserList = () => {
                     ) : (
                       <span className={`role-badge ${userData.role}`}>
                         {userData.role === 'admin' ? 'Admin' : 'Kullanıcı'}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    {user?.role === 'admin' ? (
-                      <button
-                        className={`status-toggle ${userData.is_active ? 'active' : 'inactive'}`}
-                        onClick={() => handleStatusChange(userData.id, !userData.is_active)}
-                        disabled={processing || userData.id === user.id}
-                        title={userData.id === user.id ? "Kendi durumunuzu değiştiremezsiniz" : ""}
-                      >
-                        {userData.is_active ? (
-                          <>
-                            <FontAwesomeIcon icon={faCheckCircle} />
-                            <span>Aktif</span>
-                          </>
-                        ) : (
-                          <>
-                            <FontAwesomeIcon icon={faTimesCircle} />
-                            <span>Pasif</span>
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <span className={`status-badge ${userData.is_active ? 'active' : 'inactive'}`}>
-                        {userData.is_active ? 'Aktif' : 'Pasif'}
                       </span>
                     )}
                   </td>

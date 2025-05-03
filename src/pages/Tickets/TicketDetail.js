@@ -56,22 +56,32 @@ const TicketDetail = () => {
 
     try {
       setLoading(true);
+      setError(''); // Önceki hataları temizle
+      
       const response = await ticketService.getTicketById(ticketId);
       
       if (response && response.data) {
+        console.log('Talep detayları:', response.data);
         setTicket(response.data);
+        
+        // Departman bilgisini çek
         if (response.data.department_id) {
           fetchDepartment(response.data.department_id);
         }
-        setError('');
       } else {
-        setError('Talep bulunamadı');
+        setError('Talep verisi alınamadı');
       }
     } catch (err) {
       console.error('Talep detayları yüklenirken hata:', err);
-      // Hata nesnesini string'e çevirerek saklayalım
-      setError('Talep detayları yüklenirken bir hata oluştu: ' + 
-        (err.message || 'Bilinmeyen hata'));
+      
+      // Kullanıcı dostu hata mesajı
+      if (err.message) {
+        setError(err.message);
+      } else if (err.response && err.response.data && err.response.data.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError('Talep detayları yüklenirken bir hata oluştu');
+      }
     } finally {
       setLoading(false);
     }
@@ -165,7 +175,7 @@ const TicketDetail = () => {
           <span>Geri</span>
         </button>
 
-        {user && user.role === 'ADMIN' && (
+        {user && (user.role === 'admin' || user.role === 'support') && (
           <div className="action-buttons">
             <button 
               className="edit-button"

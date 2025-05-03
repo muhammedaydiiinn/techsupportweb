@@ -68,10 +68,36 @@ const ticketService = {
   // Talep detayını getir
   getTicketById: async (id) => {
     try {
+      // ID parametresinin kontrolü
+      if (!id || id === 'undefined') {
+        throw new Error('Geçersiz talep ID');
+      }
+      
+      // API path'ini düzelt
       const response = await axiosInstance.get(`/tickets/${id}`);
+      
+      // Yanıt kontrolü
+      if (!response || !response.data) {
+        throw new Error('Talep bulunamadı');
+      }
+      
       return response;
     } catch (error) {
       console.error('Talep detayı getirilirken hata:', error);
+      
+      // Daha açıklayıcı hata mesajları
+      if (error.response) {
+        if (error.response.status === 404) {
+          throw new Error('Talep bulunamadı');
+        } else if (error.response.status === 403) {
+          throw new Error('Bu talebi görüntüleme yetkiniz yok');
+        } else if (error.response.status === 401) {
+          throw new Error('Oturum süresi dolmuş, lütfen tekrar giriş yapın');
+        } else if (error.response.status === 422) {
+          throw new Error('Geçersiz talep ID formatı');
+        }
+      }
+      
       throw error;
     }
   },

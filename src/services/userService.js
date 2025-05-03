@@ -3,10 +3,9 @@ import axiosInstance from './axiosConfig';
 // Kullanıcı rolleri enum
 export const userRoles = [
   { value: 'admin', label: 'Yönetici' },
-  { value: 'support', label: 'Destek Personeli' },
   { value: 'user', label: 'Kullanıcı' },
-  { value: 'department_manager', label: 'Departman Yöneticisi' },
-  { value: 'department_employee', label: 'Departman Çalışanı' }
+  { value: 'support', label: 'Destek Personeli' },
+  { value: 'department_manager', label: 'Departman Yöneticisi' }
 ];
 
 const userService = {
@@ -27,6 +26,11 @@ const userService = {
   // Kullanıcı detayını getir
   getUserById: async (id) => {
     try {
+      // Hata kontrolü
+      if (!id) {
+        throw new Error('Kullanıcı ID gerekli');
+      }
+      
       const response = await axiosInstance.get(`/users/${id}`);
       return response;
     } catch (error) {
@@ -60,15 +64,22 @@ const userService = {
   // Kullanıcı bilgilerini güncelle
   updateUser: async (id, userData) => {
     try {
-      // Sadece güncellenecek alanları içeren veri oluştur
+      if (!id) {
+        throw new Error('Kullanıcı ID gerekli');
+      }
+      
+      // API'nin beklediği formatta veri oluştur
       const data = {};
       
+      // Tüm olası alanları kontrol et
+      if (userData.email !== undefined) data.email = userData.email;
       if (userData.first_name !== undefined) data.first_name = userData.first_name;
       if (userData.last_name !== undefined) data.last_name = userData.last_name;
       if (userData.password !== undefined) data.password = userData.password;
       if (userData.old_password !== undefined) data.old_password = userData.old_password;
       if (userData.role !== undefined) data.role = userData.role;
       if (userData.department_id !== undefined) data.department_id = userData.department_id;
+      if (userData.api_access !== undefined) data.api_access = userData.api_access;
       
       const response = await axiosInstance.put(`/users/${id}`, data);
       return response;
@@ -81,6 +92,10 @@ const userService = {
   // Kullanıcı sil
   deleteUser: async (id) => {
     try {
+      if (!id) {
+        throw new Error('Kullanıcı ID gerekli');
+      }
+      
       const response = await axiosInstance.delete(`/users/${id}`);
       return response;
     } catch (error) {
@@ -92,8 +107,11 @@ const userService = {
   // Kullanıcı rolünü güncelle (Admin işlemi)
   updateUserRole: async (userId, role) => {
     try {
-      const response = await axiosInstance.put(`/users/${userId}/role`, { role });
-      return response;
+      if (!userId) {
+        throw new Error('Kullanıcı ID gerekli');
+      }
+      
+      return await userService.updateUser(userId, { role });
     } catch (error) {
       console.error('Kullanıcı rolü güncellenirken hata:', error);
       throw error;
@@ -103,8 +121,11 @@ const userService = {
   // Kullanıcı departmanını güncelle (Admin veya departman yöneticisi işlemi)
   updateUserDepartment: async (userId, departmentId) => {
     try {
-      const response = await axiosInstance.put(`/users/${userId}/department`, { department_id: departmentId });
-      return response;
+      if (!userId) {
+        throw new Error('Kullanıcı ID gerekli');
+      }
+      
+      return await userService.updateUser(userId, { department_id: departmentId });
     } catch (error) {
       console.error('Kullanıcı departmanı güncellenirken hata:', error);
       throw error;
@@ -125,6 +146,10 @@ const userService = {
   // Belirli bir departmana ait kullanıcıları getir
   getUsersByDepartment: async (departmentId, params = {}) => {
     try {
+      if (!departmentId) {
+        throw new Error('Departman ID gerekli');
+      }
+      
       const queryParams = { ...params, department_id: departmentId };
       const response = await axiosInstance.get(`/users`, { params: queryParams });
       return response;
@@ -137,6 +162,10 @@ const userService = {
   // Belirli bir role sahip kullanıcıları getir
   getUsersByRole: async (role, params = {}) => {
     try {
+      if (!role) {
+        throw new Error('Rol bilgisi gerekli');
+      }
+      
       const queryParams = { ...params, role: role };
       const response = await axiosInstance.get(`/users`, { params: queryParams });
       return response;
