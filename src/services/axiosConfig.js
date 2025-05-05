@@ -34,7 +34,7 @@ export const testApiConnection = async () => {
 // Axios instance oluştur
 const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
-  timeout: 10000,
+  timeout: 30000, // Timeout süresini 30 saniyeye çıkardık
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json'
@@ -141,4 +141,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance; 
+export default axiosInstance;

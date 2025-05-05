@@ -28,6 +28,8 @@ const TicketDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [aiResponses, setAiResponses] = useState([]);
+  const [loadingAiResponses, setLoadingAiResponses] = useState(false);
 
   // Değerleri güvenli bir şekilde görüntülemek için yardımcı fonksiyon
   const safeRender = (value, defaultValue = 'Bilinmiyor') => {
@@ -77,6 +79,19 @@ const TicketDetail = () => {
         // Departman bilgisini çek
         if (result.data.department_id) {
           fetchDepartment(result.data.department_id);
+        }
+
+        // Yapay zeka yanıtlarını getir
+        try {
+          setLoadingAiResponses(true);
+          const aiResult = await ticketService.getTicketAiResponses(ticketId);
+          if (aiResult.success) {
+            setAiResponses(aiResult.data);
+          }
+        } catch (err) {
+          console.error('Yapay zeka yanıtları yüklenirken hata:', err);
+        } finally {
+          setLoadingAiResponses(false);
         }
       } else {
         setError(result.message || 'Talep verisi alınamadı');
@@ -281,6 +296,32 @@ const TicketDetail = () => {
             <h2>Açıklama</h2>
             <p>{safeRender(ticket.description)}</p>
           </div>
+
+          {/* Yapay Zeka Yanıtları Bölümü */}
+          <div className="ai-responses-section">
+            <h2>Yapay Zeka Yanıtları</h2>
+            {loadingAiResponses ? (
+              <div className="loading-spinner">
+                <FontAwesomeIcon icon={faSpinner} spin />
+                <span>Yapay zeka yanıtları yükleniyor...</span>
+              </div>
+            ) : aiResponses.length > 0 ? (
+              <div className="ai-responses-list">
+                {aiResponses.map((response, index) => (
+                  <div key={index} className="ai-response-item">
+                    <div className="ai-response-content">{response.content}</div>
+                    <div className="ai-response-timestamp">
+                      {new Date(response.created_at).toLocaleString('tr-TR')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-ai-responses">
+                Henüz yapay zeka yanıtı bulunmamaktadır.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -294,4 +335,4 @@ const TicketDetail = () => {
   );
 };
 
-export default TicketDetail; 
+export default TicketDetail;

@@ -1,6 +1,33 @@
 import axiosInstance from './axiosConfig';
 
 const ticketService = {
+  // Yapay zeka yanıtlarını getir
+  getTicketAiResponses: async (ticketId) => {
+    try {
+      if (!ticketId) {
+        throw new Error('Geçersiz talep ID');
+      }
+
+      const response = await axiosInstance.get(`/ai/ticket/${ticketId}/ai-responses`);
+      
+      // Yanıtları oluşturulma tarihine göre sırala
+      const sortedResponses = response.data.sort((a, b) => 
+        new Date(b.created_at) - new Date(a.created_at)
+      );
+
+      return {
+        success: true,
+        data: sortedResponses
+      };
+    } catch (error) {
+      console.error('Yapay zeka yanıtları getirilirken hata:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Yapay zeka yanıtları getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
+    }
+  },
   // Son destek taleplerini getir
   getRecentTickets: async () => {
     try {
@@ -223,6 +250,7 @@ const ticketService = {
           'Content-Type': 'application/json'
         };
       }
+      console.log('Yeni talep verisi:', ticketData);
       
       const response = await axiosInstance.post(`/tickets`, ticketData, { headers });
       // API.js servisinde kullanılan success formatına uygun yanıt döndür
@@ -390,4 +418,4 @@ const ticketService = {
   }
 };
 
-export { ticketService }; 
+export { ticketService };

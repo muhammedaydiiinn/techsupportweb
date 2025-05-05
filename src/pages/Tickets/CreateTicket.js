@@ -18,13 +18,11 @@ const CreateTicket = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [departments, setDepartments] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
     priority: '',
-    department_id: '',
     attachments: []
   });
 
@@ -33,9 +31,6 @@ const CreateTicket = () => {
       try {
         setLoading(true);
         
-        if (user.role === 'admin') {
-          setDepartments([]);
-        }
         
       } catch (err) {
         console.error('Veri yükleme hatası:', err);
@@ -71,10 +66,7 @@ const CreateTicket = () => {
         requestData.append('category', formData.category);
         requestData.append('priority', formData.priority);
         
-        if (formData.department_id) {
-          requestData.append('department_id', formData.department_id);
-        }
-        
+      
         // Dosyaları ekle
         formData.attachments.forEach((file, index) => {
           requestData.append(`attachments[${index}]`, file);
@@ -89,13 +81,13 @@ const CreateTicket = () => {
           description: formData.description,
           category: formData.category,
           priority: formData.priority,
-          department_id: formData.department_id || undefined
         };
         
         response = await ticketService.createTicket(dataToSend);
       }
       
-      if (response && response.status >= 200 && response.status < 300 && response.data) {
+      console.log('Talep oluşturma yanıtı:', response);
+      if (response.success) {
         toast.success('Talep başarıyla oluşturuldu');
         
         // ID kontrolü eklenmiş yönlendirme
@@ -236,23 +228,7 @@ const CreateTicket = () => {
             </select>
           </div>
 
-          {user.role === 'admin' && (
-          <div className="form-group">
-              <label htmlFor="department">Departman</label>
-              <select
-                id="department"
-                value={formData.department_id}
-                onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-              >
-                <option value="">Seçiniz</option>
-                {departments.map(dept => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+         
           </div>
 
           <div className="form-group">
