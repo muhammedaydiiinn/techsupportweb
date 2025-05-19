@@ -178,17 +178,19 @@ const CreateTicket = () => {
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="category">Kategori</label>
-            <select
-              id="category"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              required
-            >
-              <option value="">Seçiniz</option>
-              <option value="hardware">Donanım</option>
-              <option value="software">Yazılım</option>
-              <option value="network">Ağ/İnternet</option>
-            </select>
+           <select
+            id="category"
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            required
+          >
+            <option value="">Seçiniz</option>
+            <option value="HARDWARE">Donanım</option>
+            <option value="SOFTWARE">Yazılım</option>
+            <option value="NETWORK">Ağ/İnternet</option>
+            <option value="TECHNICAL">Teknik</option>
+            <option value="OTHER">Diğer</option>
+          </select>
           </div>
 
           <div className="form-group">
@@ -201,17 +203,16 @@ const CreateTicket = () => {
                 setFormData(prev => ({
                   ...prev,
                   priority: newPriority,
-                  // Kritik öncelikli ticketlar için otomatik Level 3 ataması
-                  support_level: newPriority === 'critical' ? SupportLevel.LEVEL_3 : SupportLevel.LEVEL_1
+                  support_level: newPriority === 'CRITICAL' ? SupportLevel.LEVEL_3 : SupportLevel.LEVEL_1
                 }));
               }}
               required
             >
               <option value="">Seçiniz</option>
-              <option value="low">Düşük</option>
-              <option value="medium">Normal</option>
-              <option value="high">Yüksek</option>
-              <option value="critical">Acil</option>
+              <option value="LOW">Düşük</option>
+              <option value="MEDIUM">Normal</option>
+              <option value="HIGH">Yüksek</option>
+              <option value="CRITICAL">Acil</option>
             </select>
           </div>
 

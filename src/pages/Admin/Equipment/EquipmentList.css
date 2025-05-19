@@ -1,3 +1,27 @@
+:root {
+  --primary-color: #3b82f6;         /* Ana buton rengi */
+  --primary-dark: #1e40af;          /* Hover için koyu mavi */
+  --primary-light: #93c5fd;         /* Edit buton arka planı */
+
+  --background-color: #f9fafb;      /* Hover arka plan rengi */
+  --background-light: #f3f4f6;      /* Default rozet arka planı */
+  --surface-color: #ffffff;         /* Kart ve boş durum arka planı */
+
+  --border-color: #e5e7eb;          /* Kart kenarlığı */
+  --text-primary: #111827;          /* Ana yazı rengi */
+  --text-secondary: #6b7280;        /* Açıklama/metaveri rengi */
+  --text-light: #e0e0e0;            /* Rozet arka planı */
+
+  --success-color: #10b981;         /* Başarı yazı rengi */
+  --success-light: #d1fae5;         /* Başarı rozet arka planı */
+
+  --warning-color: #f59e0b;         /* Uyarı yazı rengi */
+  --warning-light: #fef3c7;         /* Uyarı rozet arka planı */
+
+  --error-color: #ef4444;           /* Hata yazı ve buton rengi */
+  --error-light: #fee2e2;           /* Hata rozet ve buton arka planı */
+}
+
 .equipment-list-container {
   padding: 1.5rem;
 }

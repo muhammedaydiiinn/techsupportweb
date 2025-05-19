@@ -1,27 +1,26 @@
 import axiosInstance from './axiosConfig';
 
-// Ekipman tipleri enum
+
+// EKİPMAN TİPLERİ ENUM
 export const equipmentTypes = [
-  { value: "computer", label: "Bilgisayar" },
-  { value: "laptop", label: "Dizüstü Bilgisayar" },
-  { value: "monitor", label: "Monitör" },
-  { value: "printer", label: "Yazıcı" },
-  { value: "server", label: "Sunucu" },
-  { value: "network_device", label: "Ağ Cihazı" },
-  { value: "mobile_device", label: "Mobil Cihaz" },
-  { value: "peripheral", label: "Çevre Birimi" },
-  { value: "software", label: "Yazılım" },
-  { value: "other", label: "Diğer" }
+  { value: "COMPUTER", label: "Bilgisayar" },
+  { value: "LAPTOP", label: "Dizüstü Bilgisayar" },
+  { value: "PRINTER", label: "Yazıcı" },
+  { value: "SERVER", label: "Sunucu" },
+  { value: "NETWORK", label: "Ağ Cihazı" },
+  { value: "MOBILE", label: "Mobil Cihaz" },
+  { value: "OTHER", label: "Diğer" }
 ];
 
-// Ekipman durumları enum
+// EKİPMAN DURUMLARI ENUM
 export const equipmentStatuses = [
-  { value: "active", label: "Aktif" },
-  { value: "maintenance", label: "Bakımda" },
-  { value: "repair", label: "Tamirde" },
-  { value: "broken", label: "Arızalı" },
-  { value: "retired", label: "Kullanım Dışı" }
+  { value: "ACTIVE", label: "Aktif" },
+  { value: "MAINTENANCE", label: "Bakımda" },
+  { value: "REPAIR", label: "Tamirde" },
+  { value: "BROKEN", label: "Arızalı" },
+  { value: "RETIRED", label: "Kullanım Dışı" }
 ];
+
 
 const equipmentService = {
   // Tüm ekipmanları getir
