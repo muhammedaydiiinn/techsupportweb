@@ -7,14 +7,16 @@ import {
   faEdit,
   faUserPlus,
   faTrash,
-  faExclamationCircle
+  faExclamationCircle,
+  faHistory
 } from '@fortawesome/free-solid-svg-icons';
-import { ticketService } from '../../services/ticketService'; // adminService'i de import et
+import { ticketService } from '../../services/ticketService';
 import { departmentService } from '../../services/departmentService';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './TicketDetail.css';
 import AssignTicketModal from '../../components/AssignTicketModal/AssignTicketModal';
+import { SupportLevel, SupportLevelLabels, SupportLevelDescriptions } from '../../constants/supportLevels';
 
 const TicketDetail = () => {
   const params = useParams();
@@ -30,6 +32,8 @@ const TicketDetail = () => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [aiResponses, setAiResponses] = useState([]);
   const [loadingAiResponses, setLoadingAiResponses] = useState(false);
+  const [timeline, setTimeline] = useState([]);
+  const [showTimeline, setShowTimeline] = useState(false);
 
   // Değerleri güvenli bir şekilde görüntülemek için yardımcı fonksiyon
   const safeRender = (value, defaultValue = 'Bilinmiyor') => {
@@ -92,6 +96,12 @@ const TicketDetail = () => {
           console.error('Yapay zeka yanıtları yüklenirken hata:', err);
         } finally {
           setLoadingAiResponses(false);
+        }
+
+        // Timeline'ı getir
+        const timelineResult = await ticketService.getTicketTimeline(ticketId);
+        if (timelineResult.success) {
+          setTimeline(timelineResult.data);
         }
       } else {
         setError(result.message || 'Talep verisi alınamadı');
@@ -164,6 +174,30 @@ const TicketDetail = () => {
       'critical': 'purple'
     };
     return priorityMap[priority] || 'gray';
+  };
+
+  const handleSupportLevelChange = async (newLevel) => {
+    try {
+      // Yetki kontrolü
+      if (!user || (user.role !== 'admin' && user.role !== 'support')) {
+        toast.error('Bu işlem için yetkiniz bulunmuyor');
+        return;
+      }
+
+      // Destek seviyesi değişikliği
+      const response = await ticketService.updateSupportLevel(ticketId, newLevel);
+      
+      if (response.success) {
+        // Ticket detaylarını yenile
+        await fetchTicketDetails();
+        toast.success('Destek seviyesi güncellendi');
+      } else {
+        toast.error(response.message || 'Destek seviyesi güncellenirken bir hata oluştu');
+      }
+    } catch (err) {
+      console.error('Destek seviyesi güncelleme hatası:', err);
+      toast.error('Destek seviyesi güncellenirken bir hata oluştu');
+    }
   };
 
   if (loading) {
@@ -247,6 +281,9 @@ const TicketDetail = () => {
             <div className="category-badge">
               {safeRender(ticket.category)}
             </div>
+            <div className={`support-level-badge ${ticket.support_level}`}>
+              {SupportLevelLabels[ticket.support_level]}
+            </div>
           </div>
 
           <div className="ticket-info">
@@ -290,7 +327,59 @@ const TicketDetail = () => {
                   'Güncelleme yok'}
               </span>
             </div>
+            <div className="info-item">
+              <label>Destek Seviyesi:</label>
+              {user && (user.role === 'admin' || user.role === 'support') ? (
+                <select
+                  value={ticket.support_level}
+                  onChange={(e) => handleSupportLevelChange(e.target.value)}
+                  className="support-level-select"
+                >
+                  {Object.entries(SupportLevelLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span>
+                  {SupportLevelLabels[ticket.support_level]}
+                  <small className="support-level-description">
+                    {SupportLevelDescriptions[ticket.support_level]}
+                  </small>
+                </span>
+              )}
+            </div>
           </div>
+
+          <div className="ticket-actions">
+            <button
+              className="timeline-button"
+              onClick={() => setShowTimeline(!showTimeline)}
+            >
+              <FontAwesomeIcon icon={faHistory} />
+              <span>Timeline</span>
+            </button>
+          </div>
+
+          {showTimeline && (
+            <div className="ticket-timeline">
+              <h3>Timeline</h3>
+              <div className="timeline-items">
+                {timeline.map((item, index) => (
+                  <div key={index} className="timeline-item">
+                    <div className="timeline-date">
+                      {new Date(item.created_at).toLocaleString('tr-TR')}
+                    </div>
+                    <div className="timeline-content">
+                      <div className="timeline-type">{item.activity_type}</div>
+                      <div className="timeline-description">{item.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="ticket-description">
             <h2>Açıklama</h2>

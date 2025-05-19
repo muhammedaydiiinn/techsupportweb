@@ -10,6 +10,7 @@ import {
 import { ticketService } from '../../services/ticketService';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import { SupportLevel, SupportLevelLabels } from '../../constants/supportLevels';
 import '../../styles/tickets.css';
 
 const CreateTicket = () => {
@@ -23,15 +24,21 @@ const CreateTicket = () => {
     description: '',
     category: '',
     priority: '',
-    attachments: []
+    attachments: [],
+    support_level: SupportLevel.LEVEL_1 // Varsayılan olarak Level 1
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        
+        // Kritik öncelikli ticketlar için otomatik Level 3 ataması
+        if (formData.priority === 'critical') {
+          setFormData(prev => ({
+            ...prev,
+            support_level: SupportLevel.LEVEL_3
+          }));
+        }
       } catch (err) {
         console.error('Veri yükleme hatası:', err);
         setError(typeof err === 'string' ? err : 
@@ -43,63 +50,35 @@ const CreateTicket = () => {
     };
 
     fetchData();
-  }, [user.role]);
+  }, [user.role, formData.priority]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError('');
 
     try {
-      // Dosya ekleri varsa FormData kullanarak göndermeliyiz
-      const hasAttachments = formData.attachments && formData.attachments.length > 0;
+      // Ticket oluştur
+      const ticketResponse = await ticketService.createTicket(formData);
       
-      let requestData;
-      let response;
-      
-      if (hasAttachments) {
-        // FormData oluştur
-        requestData = new FormData();
+      if (ticketResponse.success) {
+        const ticketId = ticketResponse.data.id;
         
-        // Form verilerini ekle
-        requestData.append('title', formData.title);
-        requestData.append('description', formData.description);
-        requestData.append('category', formData.category);
-        requestData.append('priority', formData.priority);
+        // AI analizi başlat
+        await ticketService.startAIAnalysis(ticketId);
         
-      
-        // Dosyaları ekle
-        formData.attachments.forEach((file, index) => {
-          requestData.append(`attachments[${index}]`, file);
-        });
-        
-        // Multipart/form-data olarak gönder
-        response = await ticketService.createTicket(requestData);
-      } else {
-        // Dosya yoksa normal JSON olarak gönder
-        const dataToSend = {
-          title: formData.title,
-          description: formData.description,
-          category: formData.category,
-          priority: formData.priority,
-        };
-        
-        response = await ticketService.createTicket(dataToSend);
-      }
-      
-      console.log('Talep oluşturma yanıtı:', response);
-      if (response.success) {
+        // Activity log oluştur
+        await ticketService.createActivityLog(
+          ticketId,
+          'ticket_created',
+          'Yeni ticket oluşturuldu ve AI analizi başlatıldı'
+        );
+
         toast.success('Talep başarıyla oluşturuldu');
-        
-        // ID kontrolü eklenmiş yönlendirme
-        if (response.data.id) {
-          navigate(`/tickets/${response.data.id}`);
-        } else {
-          toast.error('Talep oluşturuldu, ancak ID bilgisi alınamadı');
-          navigate('/tickets');
-        }
+        navigate(`/tickets/${ticketId}`);
       } else {
-        setError('Talep oluşturulamadı');
-        toast.error('Talep oluşturulamadı');
+        setError(ticketResponse.message || 'Talep oluşturulurken bir hata oluştu');
+        toast.error(ticketResponse.message || 'Talep oluşturulurken bir hata oluştu');
       }
     } catch (err) {
       console.error('Talep oluşturma hatası:', err);
@@ -217,7 +196,15 @@ const CreateTicket = () => {
             <select
               id="priority"
               value={formData.priority}
-              onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+              onChange={(e) => {
+                const newPriority = e.target.value;
+                setFormData(prev => ({
+                  ...prev,
+                  priority: newPriority,
+                  // Kritik öncelikli ticketlar için otomatik Level 3 ataması
+                  support_level: newPriority === 'critical' ? SupportLevel.LEVEL_3 : SupportLevel.LEVEL_1
+                }));
+              }}
               required
             >
               <option value="">Seçiniz</option>
@@ -228,7 +215,27 @@ const CreateTicket = () => {
             </select>
           </div>
 
-         
+          <div className="form-group">
+            <label htmlFor="support_level">Destek Seviyesi</label>
+            <select
+              id="support_level"
+              value={formData.support_level}
+              onChange={(e) => setFormData({ ...formData, support_level: e.target.value })}
+              required
+              disabled={formData.priority === 'critical'} // Kritik öncelikli ticketlar için değiştirilemez
+            >
+              {Object.entries(SupportLevelLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            {formData.priority === 'critical' && (
+              <small className="info-text">
+                Kritik öncelikli ticketlar otomatik olarak Yönetici Destek seviyesine atanır
+              </small>
+            )}
+          </div>
           </div>
 
           <div className="form-group">

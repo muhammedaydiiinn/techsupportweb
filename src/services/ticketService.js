@@ -1,4 +1,5 @@
 import axiosInstance from './axiosConfig';
+import { SupportLevelLabels } from '../constants/supportLevels';
 
 const ticketService = {
   // Yapay zeka yanıtlarını getir
@@ -412,6 +413,122 @@ const ticketService = {
       return {
         success: false,
         message: error.response?.data?.message || 'Talep atama işlemi sırasında bir hata oluştu',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Destek seviyesini güncelle
+  updateSupportLevel: async (ticketId, supportLevel) => {
+    try {
+      // Support level değerini büyük harfe çevir
+      const formattedSupportLevel = supportLevel.toUpperCase();
+
+      // API endpoint'ine göre query parameter olarak gönder
+      const response = await axiosInstance.put(`/tickets/${ticketId}/support-level`, null, {
+        params: {
+          support_level: formattedSupportLevel
+        }
+      });
+
+      // Başarılı yanıt kontrolü
+      if (response.status === 200) {
+        // Activity log oluştur
+        await ticketService.createActivityLog(
+          ticketId,
+          'support_level_changed',
+          `Destek seviyesi ${SupportLevelLabels[supportLevel]} olarak güncellendi`
+        );
+
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        throw new Error('Destek seviyesi güncellenirken beklenmeyen bir hata oluştu');
+      }
+    } catch (error) {
+      console.error('Destek seviyesi güncellenirken hata:', error);
+      
+      // Hata durumlarına göre özel mesajlar
+      let errorMessage = 'Destek seviyesi güncellenirken bir hata oluştu';
+      
+      if (error.response) {
+        switch (error.response.status) {
+          case 404:
+            errorMessage = 'Talep bulunamadı';
+            break;
+          case 403:
+            errorMessage = 'Bu işlem için yetkiniz bulunmuyor';
+            break;
+          case 422:
+            errorMessage = 'Geçersiz destek seviyesi değeri';
+            break;
+          default:
+            errorMessage = error.response.data?.message || errorMessage;
+        }
+      }
+
+      return {
+        success: false,
+        message: errorMessage,
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // AI analizi başlat
+  startAIAnalysis: async (ticketId) => {
+    try {
+      const response = await axiosInstance.post(`/tickets/${ticketId}/ai-analysis`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('AI analizi başlatılırken hata:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'AI analizi başlatılırken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Timeline'ı getir
+  getTicketTimeline: async (ticketId) => {
+    try {
+      const response = await axiosInstance.get(`/tickets/${ticketId}/timeline`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Timeline getirilirken hata:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Timeline getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
+    }
+  },
+
+  // Activity log oluştur
+  createActivityLog: async (ticketId, activityType, description) => {
+    try {
+      const response = await axiosInstance.post(`/tickets/${ticketId}/activity-log`, {
+        activity_type: activityType,
+        description: description
+      });
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Activity log oluşturulurken hata:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Activity log oluşturulurken bir hata oluştu',
         error: error.response?.data || error.message
       };
     }
