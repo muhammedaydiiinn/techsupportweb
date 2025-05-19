@@ -53,15 +53,8 @@ const Header = ({ onToggleSidebar }) => {
       </div>
 
       <div className="header-right">
-        <button className="theme-toggle" onClick={toggleTheme}>
-          <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} />
-        </button>
-
-        <button className="notification-button">
-          <FontAwesomeIcon icon={faBell} />
-          <span className="notification-badge">3</span>
-        </button>
-
+      
+       
         <div className="user-menu" ref={dropdownRef}>
           <button className="user-button" onClick={toggleDropdown}>
             <FontAwesomeIcon icon={faUser} />

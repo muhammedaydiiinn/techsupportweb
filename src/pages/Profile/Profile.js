@@ -7,7 +7,7 @@ import './Profile.css';
 const Profile = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    name: user?.first_name + ' ' + user.last_name || '',
     email: user?.email || '',
     currentPassword: '',
     newPassword: '',
