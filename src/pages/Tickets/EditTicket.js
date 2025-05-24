@@ -28,6 +28,7 @@ const EditTicket = () => {
     department_id: '',
     assigned_to_id: ''
   });
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,23 +125,59 @@ const EditTicket = () => {
     setSaving(true);
 
     try {
-      const result = await ticketService.updateTicket(ticketId, formData);
+      // Form verilerini hazırla ve API'nin beklediği formata dönüştür
+      const ticketData = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category.toUpperCase(), // API büyük harf bekliyor
+        priority: formData.priority.toUpperCase(), // API büyük harf bekliyor
+        status: formData.status.toUpperCase(), // API büyük harf bekliyor
+        department_id: formData.department_id,
+        equipment_id: formData.equipment_id === '' ? null : formData.equipment_id,
+        assigned_to_id: formData.assigned_to_id === '' ? null : formData.assigned_to_id
+      };
+
+      const response = await ticketService.updateTicket(ticketId, ticketData);
+      console.log('Talep güncellendi:', response);
       
-      if (result.success) {
-        toast.success('Talep başarıyla güncellendi');
-        navigate(`/tickets/${ticketId}`);
-      } else {
-        setError(result.message || 'Talep güncellenemedi');
-        toast.error(result.message || 'Talep güncellenemedi');
+      // Dosya ekleri varsa yükle
+      if (selectedFiles.length > 0) {
+        await uploadAttachments(ticketId, selectedFiles);
       }
-    } catch (err) {
-      console.error('Güncelleme hatası:', err);
-      setError(typeof err === 'string' ? err : 
-        (err.message || 'Talep güncellenirken bir hata oluştu'));
-      toast.error('Talep güncellenirken bir hata oluştu');
+
+      toast.success('Talep başarıyla güncellendi!');
+      navigate(`/tickets/${ticketId}`);
+    } catch (error) {
+      console.error('Talep güncellenirken hata:', error);
+      toast.error('Talep güncellenirken bir hata oluştu.');
     } finally {
       setSaving(false);
     }
+  };
+
+  // Dosya yükleme fonksiyonu
+  const uploadAttachments = async (ticketId, files) => {
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        await ticketService.uploadAttachment(ticketId, formData);
+      }
+    } catch (error) {
+      console.error('Dosya yükleme hatası:', error);
+      toast.error('Dosyalar yüklenirken bir hata oluştu');
+    }
+  };
+
+  // Dosya ekleme işlevi
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles([...selectedFiles, ...files]);
+  };
+
+  // Dosya kaldırma işlevi
+  const removeFile = (index) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
   if (loading) {
@@ -199,11 +236,13 @@ const EditTicket = () => {
             <label htmlFor="category">Kategori</label>
             <select
               id="category"
-              value={(formData.category || '').toUpperCase()}
+              name="category"
+              value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               required
+              className="form-control"
             >
-              <option value="">Seçiniz</option>
+              <option value="">Kategori Seçin</option>
               <option value="HARDWARE">Donanım</option>
               <option value="SOFTWARE">Yazılım</option>
               <option value="NETWORK">Ağ/İnternet</option>
@@ -216,11 +255,13 @@ const EditTicket = () => {
             <label htmlFor="priority">Öncelik</label>
             <select
               id="priority"
-              value={(formData.priority || '').toUpperCase()}
+              name="priority"
+              value={formData.priority}
               onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
               required
+              className="form-control"
             >
-              <option value="">Seçiniz</option>
+              <option value="">Öncelik Seçin</option>
               <option value="LOW">Düşük</option>
               <option value="MEDIUM">Normal</option>
               <option value="HIGH">Yüksek</option>
@@ -232,11 +273,13 @@ const EditTicket = () => {
             <label htmlFor="status">Durum</label>
             <select
               id="status"
-              value={(formData.status || '').toUpperCase()}
+              name="status"
+              value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               required
+              className="form-control"
             >
-              <option value="">Seçiniz</option>
+              <option value="">Durum Seçin</option>
               <option value="OPEN">Açık</option>
               <option value="IN_PROGRESS">İşlemde</option>
               <option value="WAITING">Beklemede</option>

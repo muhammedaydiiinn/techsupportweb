@@ -58,35 +58,46 @@ const CreateTicket = () => {
     setError('');
 
     try {
-      // Ticket oluştur
-      const ticketResponse = await ticketService.createTicket(formData);
-      
-      if (ticketResponse.success) {
-        const ticketId = ticketResponse.data.id;
-        
-        // AI analizi başlat
-        await ticketService.startAIAnalysis(ticketId);
-        
-        // Activity log oluştur
-        await ticketService.createActivityLog(
-          ticketId,
-          'ticket_created',
-          'Yeni ticket oluşturuldu ve AI analizi başlatıldı'
-        );
+      // Form verilerini hazırla
+      const ticketData = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category.toUpperCase(), // API büyük harf bekliyor
+        priority: formData.priority.toUpperCase(), // API büyük harf bekliyor
+        department_id: formData.department_id,
+        equipment_id: formData.equipment_id === '' ? null : formData.equipment_id
+      };
 
-        toast.success('Talep başarıyla oluşturuldu');
-        navigate(`/tickets/${ticketId}`);
-      } else {
-        setError(ticketResponse.message || 'Talep oluşturulurken bir hata oluştu');
-        toast.error(ticketResponse.message || 'Talep oluşturulurken bir hata oluştu');
+      const response = await ticketService.createTicket(ticketData);
+      console.log('Talep oluşturuldu:', response);
+      
+      // Dosya ekleri varsa yükle
+      if (formData.attachments.length > 0 && response.data.id) {
+        await uploadAttachments(response.data.id, formData.attachments);
       }
-    } catch (err) {
-      console.error('Talep oluşturma hatası:', err);
-      setError(typeof err === 'string' ? err : 
-        (err.message || 'Talep oluşturulurken bir hata oluştu'));
-      toast.error('Talep oluşturulurken bir hata oluştu');
+
+      toast.success('Talep başarıyla oluşturuldu!');
+      navigate('/tickets');
+    } catch (error) {
+      console.error('Talep oluşturulurken hata:', error);
+      setError('Talep oluşturulurken bir hata oluştu.');
+      toast.error('Talep oluşturulurken bir hata oluştu.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Dosya yükleme fonksiyonu
+  const uploadAttachments = async (ticketId, files) => {
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        await ticketService.uploadAttachment(ticketId, formData);
+      }
+    } catch (error) {
+      console.error('Dosya yükleme hatası:', error);
+      toast.error('Dosyalar yüklenirken bir hata oluştu');
     }
   };
 
@@ -178,25 +189,28 @@ const CreateTicket = () => {
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="category">Kategori</label>
-           <select
-            id="category"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            required
-          >
-            <option value="">Seçiniz</option>
-            <option value="HARDWARE">Donanım</option>
-            <option value="SOFTWARE">Yazılım</option>
-            <option value="NETWORK">Ağ/İnternet</option>
-            <option value="TECHNICAL">Teknik</option>
-            <option value="OTHER">Diğer</option>
-          </select>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              required
+              className="form-control"
+            >
+              <option value="">Kategori Seçin</option>
+              <option value="HARDWARE">Donanım</option>
+              <option value="SOFTWARE">Yazılım</option>
+              <option value="NETWORK">Ağ/İnternet</option>
+              <option value="TECHNICAL">Teknik</option>
+              <option value="OTHER">Diğer</option>
+            </select>
           </div>
 
           <div className="form-group">
             <label htmlFor="priority">Öncelik</label>
             <select
               id="priority"
+              name="priority"
               value={formData.priority}
               onChange={(e) => {
                 const newPriority = e.target.value;
@@ -207,8 +221,9 @@ const CreateTicket = () => {
                 }));
               }}
               required
+              className="form-control"
             >
-              <option value="">Seçiniz</option>
+              <option value="">Öncelik Seçin</option>
               <option value="LOW">Düşük</option>
               <option value="MEDIUM">Normal</option>
               <option value="HIGH">Yüksek</option>

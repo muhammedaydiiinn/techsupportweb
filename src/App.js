@@ -20,11 +20,9 @@ import EditTicket from './pages/Tickets/EditTicket';
 import Profile from './pages/Profile/Profile';
 import Settings from './pages/Settings/Settings';
 // Admin Sayfaları
-import AdminDashboard from './pages/Admin/AdminDashboard';
 import DepartmentList from './pages/Admin/Departments/DepartmentList';
 import UserList from './pages/Admin/Users/UserList';
 import EquipmentList from './pages/Admin/Equipment/EquipmentList';
-import Statistics from './pages/Admin/Statistics/Statistics';
 import './App.css';
 
 function App() {
@@ -51,15 +49,14 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 
                 {/* Admin Routes */}
-                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                 <Route path="/admin/departments" element={<AdminRoute><DepartmentList /></AdminRoute>} />
                 <Route path="/admin/users" element={<AdminRoute><UserList /></AdminRoute>} />
                 <Route path="/admin/equipment" element={<AdminRoute><EquipmentList /></AdminRoute>} />
-                <Route path="/admin/statistics" element={<AdminRoute><Statistics /></AdminRoute>} />
               </Route>
 
               {/* Root Redirect */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
             </Routes>
             <ToastContainer position="top-right" autoClose={3000} />
           </div>

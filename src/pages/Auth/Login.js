@@ -1,122 +1,121 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faEnvelope, 
-  faLock, 
-  faEye, 
-  faEyeSlash, 
-  faSpinner,
-  faExclamationCircle
-} from '@fortawesome/free-solid-svg-icons';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import '../../styles/auth.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
+import './AuthStyles.css';
 
 const Login = () => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Redirect sonrası dönülecek sayfa
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.email.trim() || !formData.password) {
-      setError('Tüm alanları doldurunuz.');
+    
+    if (!email || !password) {
+      setError('Lütfen tüm alanları doldurun');
       return;
     }
-
-    setLoading(true);
-    setError('');
-
+    
     try {
-      const response = await login(formData.email.trim(), formData.password);
-
-      if (response.success) {
-        navigate('/dashboard', { replace: true });
+      setError('');
+      setLoading(true);
+      
+      const result = await login(email, password);
+      
+      if (result.success) {
+        toast.success('Giriş başarılı!');
+        navigate(from, { replace: true });
       } else {
-        setError(response.message || 'Giriş işlemi başarısız oldu.');
+        setError(result.message || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.');
+        toast.error(result.message || 'Giriş yapılamadı');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Giriş işlemi başarısız oldu.');
+      setError('Giriş sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+      toast.error('Giriş yapılamadı');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <h1 className="auth-title">Giriş Yap</h1>
-        <p className="auth-subtitle">Hesabınıza giriş yapın</p>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Giriş Yap</h1>
+          <p>Teknik destek sistemine hoş geldiniz</p>
+        </div>
+        
+        {error && (
+          <div className="auth-error">
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="auth-form">
-          <div className="input-container">
-            <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
+          <div className="form-group">
+            <label htmlFor="email">
+              <FontAwesomeIcon icon={faEnvelope} /> E-posta
+            </label>
             <input
               type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              placeholder="Email"
-              className="input-field"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="E-posta adresiniz"
+              required
             />
           </div>
-
-          <div className="input-container">
-            <FontAwesomeIcon icon={faLock} className="input-icon" />
+          
+          <div className="form-group">
+            <label htmlFor="password">
+              <FontAwesomeIcon icon={faLock} /> Şifre
+            </label>
             <input
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-              placeholder="Şifre"
-              className="input-field"
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Şifreniz"
+              required
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="password-toggle"
+          </div>
+          
+          <div className="form-actions">
+            <div className="auth-links">
+              <Link to="/forgot-password" className="auth-link">
+                Şifremi Unuttum
+              </Link>
+            </div>
+            
+            <button 
+              type="submit" 
+              className="auth-button" 
+              disabled={loading}
             >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+              {loading ? (
+                <>
+                  <FontAwesomeIcon icon={faSpinner} spin /> Giriş Yapılıyor...
+                </>
+              ) : 'Giriş Yap'}
             </button>
           </div>
-
-          {error && (
-            <div className="error-message">
-              <FontAwesomeIcon icon={faExclamationCircle} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <FontAwesomeIcon icon={faSpinner} spin />
-                <span>Giriş Yapılıyor...</span>
-              </>
-            ) : (
-              'Giriş Yap'
-            )}
-          </button>
-
-          <div className="auth-links">
-            <Link to="/forgot-password" className="auth-link">
-              Şifremi Unuttum
-            </Link>
-            <Link to="/register" className="auth-link">
-              Hesabınız yok mu? Kayıt Olun
-            </Link>
-          </div>
         </form>
+        
+        <div className="auth-footer">
+          <p>Hesabınız yok mu? <Link to="/register" className="auth-link">Kayıt Ol</Link></p>
+        </div>
       </div>
     </div>
   );

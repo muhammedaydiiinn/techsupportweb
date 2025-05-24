@@ -27,25 +27,33 @@ const TicketList = () => {
   const navigate = useNavigate();
 
   const getPriorityBadge = (priority) => {
+    const priorityValue = typeof priority === 'string' ? priority.toUpperCase() : priority;
+    
     const styles = {
-      low: { backgroundColor: '#F0FFF4', color: '#38A169' },
-      medium: { backgroundColor: '#FFFAF0', color: '#DD6B20' },
-      high: { backgroundColor: '#FFF5F5', color: '#E53E3E' },
-      critical: { backgroundColor: '#FAF5FF', color: '#805AD5' }
+      LOW: { backgroundColor: '#F0FFF4', color: '#38A169', borderColor: '#9AE6B4' },
+      MEDIUM: { backgroundColor: '#FFFAF0', color: '#DD6B20', borderColor: '#FBD38D' },
+      HIGH: { backgroundColor: '#FFF5F5', color: '#E53E3E', borderColor: '#FEB2B2' },
+      CRITICAL: { backgroundColor: '#FAF5FF', color: '#805AD5', borderColor: '#D6BCFA' }
     };
 
-    const style = styles[priority] || { backgroundColor: '#F7FAFC', color: '#4A5568' };
+    const style = styles[priorityValue] || { backgroundColor: '#F7FAFC', color: '#4A5568', borderColor: '#CBD5E0' };
 
     return (
       <div style={{
         ...style,
-        padding: '0.25rem 0.75rem',
+        padding: '0.35rem 0.75rem',
         borderRadius: '9999px',
         fontSize: '0.875rem',
         fontWeight: '500',
-        display: 'inline-block'
+        display: 'inline-block',
+        border: '1px solid',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
       }}>
-        {priority}
+        {priorityValue === 'LOW' ? 'Düşük' : 
+         priorityValue === 'MEDIUM' ? 'Normal' : 
+         priorityValue === 'HIGH' ? 'Yüksek' : 
+         priorityValue === 'CRITICAL' ? 'Acil' : priority}
       </div>
     );
   };
@@ -55,41 +63,58 @@ const TicketList = () => {
       name: 'Talep No',
       selector: (row, index) => `TKT-${String(index + 1 + (currentPage - 1) * itemsPerPage).padStart(5, '0')}`,
       sortable: true,
-      width: '120px',
-      sortField: 'id'
+      width: '100px',
+      sortField: 'id',
+      cell: row => (
+        <div className="ticket-number">
+          {`TKT-${String(row.id || '0').padStart(5, '0')}`}
+        </div>
+      )
     },
     {
       name: 'Başlık',
       selector: row => row.title,
       sortable: true,
       grow: 2,
+      cell: row => (
+        <div className="ticket-title" title={row.title}>
+          {row.title.length > 60 ? `${row.title.substring(0, 60)}...` : row.title}
+        </div>
+      )
     },
     {
       name: 'Kategori',
       selector: row => row.category,
       sortable: true,
-      width: '120px',
+      width: '110px',
       cell: row => {
+        const categoryValue = typeof row.category === 'string' ? row.category.toUpperCase() : row.category;
         const categories = {
-          'hardware': 'Donanım',
-          'software': 'Yazılım',
-          'network': 'Ağ/İnternet'
+          'HARDWARE': 'Donanım',
+          'SOFTWARE': 'Yazılım',
+          'NETWORK': 'Ağ/İnternet',
+          'TECHNICAL': 'Teknik',
+          'OTHER': 'Diğer'
         };
-        return categories[row.category] || row.category;
+        return (
+          <div className="ticket-category">
+            {categories[categoryValue] || categoryValue}
+          </div>
+        );
       }
     },
     {
       name: 'Öncelik',
       selector: row => row.priority,
       sortable: true,
-      width: '120px',
+      width: '100px',
       cell: row => getPriorityBadge(row.priority)
     },
     {
       name: 'Durum',
       selector: row => row.status,
       sortable: true,
-      width: '150px',
+      width: '130px',
       cell: row => {
         const statuses = {
           'OPEN': 'Açık',
@@ -99,11 +124,12 @@ const TicketList = () => {
           'WAITING': 'Beklemede'
         };
 
-        const displayStatus = statuses[row.status] || statuses[row.status?.toUpperCase()] || row.status;
+        const statusValue = typeof row.status === 'string' ? row.status.toUpperCase() : row.status;
+        const displayStatus = statuses[statusValue] || statusValue;
 
         return user?.role === 'admin' ? (
           <select
-            value={row.status?.toUpperCase()}
+            value={statusValue}
             onChange={(e) => handleStatusChange(row.id, e.target.value)}
             className="status-select"
           >
@@ -114,24 +140,30 @@ const TicketList = () => {
             <option value="CLOSED">Kapandı</option>
           </select>
         ) : (
-          displayStatus
+          <div className={`status-badge status-${statusValue?.toLowerCase()}`}>
+            {displayStatus}
+          </div>
         );
       }
     },
     {
-      name: 'Oluşturulma',
+      name: 'Tarih',
       selector: row => row.created_at,
       sortable: true,
-      width: '180px',
-      cell: row => new Date(row.created_at).toLocaleDateString('tr-TR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+      width: '110px',
+      cell: row => (
+        <div className="ticket-date">
+          {new Date(row.created_at).toLocaleDateString('tr-TR', {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+          })}
+        </div>
+      )
     },
     {
       name: 'İşlemler',
-      width: '180px',
+      width: '120px',
       cell: row => (
         <div className="action-buttons">
           <button
@@ -255,76 +287,76 @@ const TicketList = () => {
     table: {
       style: {
         backgroundColor: 'white',
-        borderRadius: '10px',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        borderRadius: '8px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
         border: '1px solid #e2e8f0',
       }
     },
     tableWrapper: {
       style: {
-        padding: '1rem'
+        padding: '0.75rem'
       }
     },
     headRow: {
       style: {
         backgroundColor: '#f8f9fa',
-        borderTopLeftRadius: '10px',
-        borderTopRightRadius: '10px',
-        borderBottom: '2px solid #e2e8f0',
-        minHeight: '52px'
+        borderTopLeftRadius: '8px',
+        borderTopRightRadius: '8px',
+        borderBottom: '1px solid #e2e8f0',
+        minHeight: '46px'
       }
     },
     headCells: {
       style: {
-        padding: '1rem',
-        fontSize: '0.875rem',
+        padding: '0.75rem',
+        fontSize: '0.75rem',
         fontWeight: '600',
-        color: '#2d3748',
+        color: '#64748b',
         textTransform: 'uppercase',
-        letterSpacing: '0.05em'
+        letterSpacing: '0.025em'
       }
     },
     cells: {
       style: {
-        padding: '1rem',
-        fontSize: '0.875rem',
-        color: '#4a5568'
+        padding: '0.75rem',
+        fontSize: '0.815rem',
+        color: '#1e293b'
       }
     },
     rows: {
       style: {
         backgroundColor: 'white',
-        minHeight: '48px',
+        minHeight: '44px',
         '&:not(:last-of-type)': {
           borderBottomStyle: 'solid',
           borderBottomWidth: '1px',
-          borderBottomColor: '#e2e8f0'
+          borderBottomColor: '#f1f5f9'
         },
         '&:hover': {
-          backgroundColor: '#f7fafc',
+          backgroundColor: '#f8fafc',
           cursor: 'pointer',
-          transition: 'all .2s ease'
+          transition: 'all .15s ease'
         }
       }
     },
     pagination: {
       style: {
         borderTop: '1px solid #e2e8f0',
-        padding: '1rem'
+        padding: '0.75rem'
       },
       pageButtonsStyle: {
-        borderRadius: '0.375rem',
-        height: '32px',
-        minWidth: '32px',
+        borderRadius: '0.25rem',
+        height: '30px',
+        minWidth: '30px',
         padding: '0 0.5rem',
-        margin: '0 0.25rem',
+        margin: '0 0.125rem',
         cursor: 'pointer',
-        transition: 'all .2s ease',
+        transition: 'all .15s ease',
         backgroundColor: 'transparent',
         border: '1px solid #e2e8f0',
         color: '#4a5568',
         '&:hover:not(:disabled)': {
-          backgroundColor: '#edf2f7',
+          backgroundColor: '#f1f5f9',
           borderColor: '#cbd5e0'
         },
         '&:disabled': {
@@ -333,23 +365,26 @@ const TicketList = () => {
           backgroundColor: '#f7fafc'
         }
       }
+    },
+    subHeader: {
+      style: {
+        padding: '0.75rem',
+        backgroundColor: '#fff',
+        borderTopLeftRadius: '8px',
+        borderTopRightRadius: '8px',
+      }
+    },
+    title: {
+      style: {
+        fontSize: '1rem',
+        fontWeight: '600',
+        color: '#334155',
+      }
     }
   };
 
   return (
     <div className="ticket-list-container">
-      <div className="ticket-list-header">
-        <h1>{user.role === 'admin' ? 'Tüm Talepler' : 'Taleplerim'}</h1>
-        <div className="ticket-actions">
-          <button 
-            className="create-ticket-button"
-            onClick={() => navigate('/tickets/create')}
-          >
-            Yeni Talep Oluştur
-          </button>
-        </div>
-      </div>
-
       <DataTable
         columns={columns}
         data={tickets}
@@ -380,6 +415,15 @@ const TicketList = () => {
           </div>
         }
         customStyles={customStyles}
+        actions={
+          <button 
+            className="create-ticket-button"
+            onClick={() => navigate('/tickets/create')}
+          >
+            Yeni Talep Oluştur
+          </button>
+        }
+        title={user?.role === 'admin' ? 'Tüm Talepler' : 'Taleplerim'}
       />
 
       <AssignTicketModal

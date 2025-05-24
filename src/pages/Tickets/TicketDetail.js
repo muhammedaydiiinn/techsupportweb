@@ -16,7 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import './TicketDetail.css';
 import AssignTicketModal from '../../components/AssignTicketModal/AssignTicketModal';
-import { SupportLevel, SupportLevelLabels, SupportLevelDescriptions } from '../../constants/supportLevels';
+import { SupportLevelLabels, SupportLevelDescriptions } from '../../constants/supportLevels';
 
 const TicketDetail = () => {
   const params = useParams();
@@ -156,24 +156,67 @@ const TicketDetail = () => {
     fetchTicketDetails();
   };
 
-  const getStatusBadgeClass = (status) => {
-    const statusMap = {
-      'open': 'blue',
-      'in_progress': 'orange',
-      'resolved': 'green',
-      'closed': 'gray'
+  const getPriorityBadge = (priority) => {
+    const priorityValue = typeof priority === 'string' ? priority.toUpperCase() : priority;
+    
+    const styles = {
+      LOW: { backgroundColor: '#F0FFF4', color: '#38A169', borderColor: '#9AE6B4' },
+      MEDIUM: { backgroundColor: '#FFFAF0', color: '#DD6B20', borderColor: '#FBD38D' },
+      HIGH: { backgroundColor: '#FFF5F5', color: '#E53E3E', borderColor: '#FEB2B2' },
+      CRITICAL: { backgroundColor: '#FAF5FF', color: '#805AD5', borderColor: '#D6BCFA' }
     };
-    return statusMap[status] || 'gray';
+
+    const style = styles[priorityValue] || { backgroundColor: '#F7FAFC', color: '#4A5568', borderColor: '#CBD5E0' };
+
+    return (
+      <div style={{
+        ...style,
+        padding: '0.35rem 0.75rem',
+        borderRadius: '9999px',
+        fontSize: '0.875rem',
+        fontWeight: '500',
+        display: 'inline-block',
+        border: '1px solid',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+      }}>
+        {priorityValue === 'LOW' ? 'Düşük' : 
+         priorityValue === 'MEDIUM' ? 'Normal' : 
+         priorityValue === 'HIGH' ? 'Yüksek' : 
+         priorityValue === 'CRITICAL' ? 'Acil' : priority}
+      </div>
+    );
   };
 
-  const getPriorityBadgeClass = (priority) => {
-    const priorityMap = {
-      'low': 'green',
-      'medium': 'orange',
-      'high': 'red',
-      'critical': 'purple'
+  const getStatusBadge = (status) => {
+    const statusValue = typeof status === 'string' ? status.toUpperCase() : status;
+    
+    return (
+      <div className={`status-badge status-${statusValue?.toLowerCase()}`}>
+        {statusValue === 'OPEN' ? 'Açık' : 
+         statusValue === 'IN_PROGRESS' ? 'İşlemde' : 
+         statusValue === 'WAITING' ? 'Beklemede' : 
+         statusValue === 'RESOLVED' ? 'Çözüldü' : 
+         statusValue === 'CLOSED' ? 'Kapandı' : status}
+      </div>
+    );
+  };
+
+  const getCategoryBadge = (category) => {
+    const categoryValue = typeof category === 'string' ? category.toUpperCase() : category;
+    const categories = {
+      'HARDWARE': 'Donanım',
+      'SOFTWARE': 'Yazılım',
+      'NETWORK': 'Ağ/İnternet',
+      'TECHNICAL': 'Teknik',
+      'OTHER': 'Diğer'
     };
-    return priorityMap[priority] || 'gray';
+    
+    return (
+      <div className="category-badge">
+        {categories[categoryValue] || categoryValue}
+      </div>
+    );
   };
 
   const handleSupportLevelChange = async (newLevel) => {
@@ -197,6 +240,28 @@ const TicketDetail = () => {
     } catch (err) {
       console.error('Destek seviyesi güncelleme hatası:', err);
       toast.error('Destek seviyesi güncellenirken bir hata oluştu');
+    }
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    if (!ticket || !newStatus) return;
+    
+    try {
+      // API'nin beklediği formatta durum gönder (büyük harflerle)
+      const status = newStatus.toUpperCase();
+      await ticketService.updateTicketStatus(ticketId, status);
+      
+      // Durumu güncelle ve yeni aktiviteyi göster
+      setTicket(prev => ({ ...prev, status }));
+      fetchTicketDetails();
+      toast.success(`Talep durumu "${newStatus === 'IN_PROGRESS' ? 'İşlemde' : 
+                                    newStatus === 'WAITING' ? 'Beklemede' : 
+                                    newStatus === 'RESOLVED' ? 'Çözüldü' : 
+                                    newStatus === 'CLOSED' ? 'Kapandı' : 
+                                    newStatus === 'OPEN' ? 'Açık' : newStatus}" olarak güncellendi`);
+    } catch (error) {
+      console.error('Durum güncellenirken hata:', error);
+      toast.error('Durum güncellenirken bir hata oluştu');
     }
   };
 
@@ -272,14 +337,28 @@ const TicketDetail = () => {
           <h1>{safeRender(ticket.title)}</h1>
           
           <div className="ticket-meta">
-            <div className={`status-badge ${getStatusBadgeClass(ticket.status)}`}>
-              {safeRender(ticket.status)}
+            <div className="status-badge-container">
+              {user && (user.role === 'admin' || user.role === 'support') ? (
+                <select
+                  value={(ticket.status || '').toUpperCase()}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  className="status-select"
+                >
+                  <option value="OPEN">Açık</option>
+                  <option value="IN_PROGRESS">İşlemde</option>
+                  <option value="WAITING">Beklemede</option>
+                  <option value="RESOLVED">Çözüldü</option>
+                  <option value="CLOSED">Kapandı</option>
+                </select>
+              ) : (
+                getStatusBadge(ticket.status)
+              )}
             </div>
-            <div className={`priority-badge ${getPriorityBadgeClass(ticket.priority)}`}>
-              {safeRender(ticket.priority)}
+            <div className="priority-badge-container">
+              {getPriorityBadge(ticket.priority)}
             </div>
-            <div className="category-badge">
-              {safeRender(ticket.category)}
+            <div className="category-badge-container">
+              {getCategoryBadge(ticket.category)}
             </div>
             <div className={`support-level-badge ${ticket.support_level}`}>
               {SupportLevelLabels[ticket.support_level]}

@@ -55,8 +55,8 @@ const equipmentService = {
       const data = {
         name: equipmentData.name,
         description: equipmentData.description || '',
-        equipment_type: equipmentData.equipment_type || 'COMPUTER',
-        status: equipmentData.status || 'ACTIVE',
+        equipment_type: equipmentData.equipment_type ? equipmentData.equipment_type.toUpperCase() : 'COMPUTER',
+        status: equipmentData.status ? equipmentData.status.toUpperCase() : 'ACTIVE',
         serial_number: equipmentData.serial_number || '',
         model: equipmentData.model || '',
         manufacturer: equipmentData.manufacturer || '',
@@ -84,8 +84,16 @@ const equipmentService = {
       
       if (equipmentData.name !== undefined) data.name = equipmentData.name;
       if (equipmentData.description !== undefined) data.description = equipmentData.description;
-      if (equipmentData.equipment_type !== undefined) data.equipment_type = equipmentData.equipment_type;
-      if (equipmentData.status !== undefined) data.status = equipmentData.status;
+      
+      // Enum değerlerini büyük harfe çevir
+      if (equipmentData.equipment_type !== undefined) {
+        data.equipment_type = equipmentData.equipment_type ? equipmentData.equipment_type.toUpperCase() : 'COMPUTER';
+      }
+      
+      if (equipmentData.status !== undefined) {
+        data.status = equipmentData.status ? equipmentData.status.toUpperCase() : 'ACTIVE';
+      }
+      
       if (equipmentData.serial_number !== undefined) data.serial_number = equipmentData.serial_number;
       if (equipmentData.model !== undefined) data.model = equipmentData.model;
       if (equipmentData.manufacturer !== undefined) data.manufacturer = equipmentData.manufacturer;
@@ -129,7 +137,9 @@ const equipmentService = {
   // Ekipman durumunu güncelle
   updateEquipmentStatus: async (id, status) => {
     try {
-      const response = await axiosInstance.put(`/equipment/${id}/status`, { status });
+      // Status değerini büyük harfe çevir
+      const statusValue = status ? status.toUpperCase() : 'ACTIVE';
+      const response = await axiosInstance.put(`/equipment/${id}/status`, { status: statusValue });
       return response;
     } catch (error) {
       console.error('Ekipman durumu güncellenirken hata:', error);

@@ -70,15 +70,7 @@ const Header = ({ onToggleSidebar }) => {
                 <FontAwesomeIcon icon={faUser} />
                 <span>Profil</span>
               </button>
-              {user?.role === 'admin' && (
-                <button onClick={() => {
-                  navigate('/admin');
-                  setIsDropdownOpen(false);
-                }}>
-                  <FontAwesomeIcon icon={faUser} />
-                  <span>Yönetim Paneli</span>
-                </button>
-              )}
+            
               <button onClick={handleLogout}>
                 <FontAwesomeIcon icon={faSignOutAlt} />
                 <span>Çıkış Yap</span>

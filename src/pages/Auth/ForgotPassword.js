@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faEnvelope, 
-  faSpinner,
-  faExclamationCircle,
-  faCheckCircle
-} from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
 import { authService } from '../../api';
-import '../../styles/auth.css';
+import './AuthStyles.css';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -19,89 +15,90 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!email.trim()) {
-      setError('Email adresinizi giriniz.');
+    if (!email) {
+      setError('Lütfen e-posta adresinizi girin');
       return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Geçerli bir email adresi giriniz.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setSuccess(false);
-
+    
     try {
-      const response = await authService.forgotPassword(email.trim());
+      setError('');
+      setLoading(true);
+      
+      const response = await authService.forgotPassword(email);
       
       if (response.success) {
         setSuccess(true);
+        toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi');
       } else {
-        setError(response.message);
+        setError(response.message || 'Şifre sıfırlama isteği gönderilemedi');
+        toast.error(response.message || 'İşlem başarısız');
       }
     } catch (err) {
-      setError(err.message || 'Şifre sıfırlama işlemi başarısız oldu.');
+      console.error('Şifre sıfırlama hatası:', err);
+      setError('Bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+      toast.error('İşlem başarısız');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <h1 className="auth-title">Şifremi Unuttum</h1>
-        <p className="auth-subtitle">
-          Email adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.
-        </p>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Şifremi Unuttum</h1>
+          <p>Şifre sıfırlama bağlantısı için e-posta adresinizi girin</p>
+        </div>
         
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="input-container">
-            <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email adresiniz"
-              className="input-field"
-            />
+        {error && (
+          <div className="auth-error">
+            {error}
           </div>
-
-          {error && (
-            <div className="error-message">
-              <FontAwesomeIcon icon={faExclamationCircle} />
-              {error}
+        )}
+        
+        {success ? (
+          <div className="auth-success">
+            <p>Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.</p>
+            <p>Lütfen e-postanızı kontrol edin ve bağlantıya tıklayarak şifrenizi sıfırlayın.</p>
+            <Link to="/login" className="auth-button">
+              Giriş Sayfasına Dön
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="email">
+                <FontAwesomeIcon icon={faEnvelope} /> E-posta
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-posta adresiniz"
+                required
+              />
             </div>
-          )}
-          
-          {success && (
-            <div className="success-message">
-              <FontAwesomeIcon icon={faCheckCircle} />
-              Şifre sıfırlama bağlantısı email adresinize gönderildi.
+            
+            <button 
+              type="submit" 
+              className="auth-button" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <FontAwesomeIcon icon={faSpinner} spin /> İşleniyor...
+                </>
+              ) : 'Şifre Sıfırlama Bağlantısı Gönder'}
+            </button>
+            
+            <div className="auth-footer">
+              <Link to="/login" className="auth-link">
+                Giriş Sayfasına Dön
+              </Link>
             </div>
-          )}
-
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <FontAwesomeIcon icon={faSpinner} spin />
-                <span>Gönderiliyor...</span>
-              </>
-            ) : (
-              'Şifre Sıfırlama Bağlantısı Gönder'
-            )}
-          </button>
-
-          <Link to="/login" className="auth-link">
-            Giriş sayfasına dön
-          </Link>
-        </form>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -1,63 +1,88 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faHome,
   faTicketAlt,
-  faList,
   faPlus,
   faUser,
   faCog,
   faSignOutAlt,
   faChevronDown,
   faChevronRight,
-  faTachometerAlt
+  faBuilding,
+  faDesktop,
+  faUsers
 } from '@fortawesome/free-solid-svg-icons';
-import PermissionGate from '../PermissionGate';
+import { useAuth } from '../../contexts/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [activeMenus, setActiveMenus] = useState({});
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  // Menü öğeleri tanımı - useMemo ile sarmalanarak her render'da yeniden oluşması engellendi
-  const menuItems = useMemo(() => [
+  
+  // menuGroups'u useRef ile sabit tutuyoruz böylece her render'da yeniden oluşturulmayacak
+  const menuGroupsRef = useRef([
     {
-      path: '/dashboard',
-      icon: faHome,
-      label: 'Ana Sayfa'
-    },
-    { 
-      path: '/tickets', 
-      icon: faTicketAlt,
-      label: 'Talepler',
-      submenu: [
+      title: "Genel",
+      items: [
         {
-          path: '/tickets',
-          icon: faList,
-          label: 'Tüm Talepler'
+          path: '/dashboard',
+          icon: faHome,
+          label: 'Anasayfa'
         },
         {
           path: '/tickets/create',
           icon: faPlus,
-          label: 'Yeni Talep'
+          label: 'Yeni Destek Talebi'
+        },
+        {
+          path: '/tickets',
+          icon: faTicketAlt,
+          label: 'Destek Taleplerim'
         }
       ]
     },
     {
-      path: '/admin',
-      icon: faTachometerAlt,
-      label: 'Yönetim Paneli',
-      requiredPermission: 'isAdmin'
+      title: "Yönetim",
+      requiredPermission: 'admin',
+      items: [
+        {
+          path: '/admin/users',
+          icon: faUsers,
+          label: 'Kullanıcı Yönetimi'
+        },
+        {
+          path: '/admin/departments',
+          icon: faBuilding,
+          label: 'Departman Yönetimi'
+        },
+        {
+          path: '/admin/equipment',
+          icon: faDesktop,
+          label: 'Ekipman Yönetimi'
+        }
+      ]
     },
     {
-      path: '/profile',
-      icon: faUser,
-      label: 'Profil'
-    },
-
-  ], []); // Boş bağımlılık dizisi ile yalnızca bileşen ilk render edildiğinde oluşturulur
+      title: "Hesap",
+      items: [
+        {
+          path: '/profile',
+          icon: faUser,
+          label: 'Profil'
+        },
+        {
+          path: '/settings',
+          icon: faCog,
+          label: 'Ayarlar'
+        }
+      ]
+    }
+  ]);
 
   // Mobil kontrolü
   useEffect(() => {
@@ -72,55 +97,59 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   // URL değiştiğinde aktif menüleri ayarla
   useEffect(() => {
     const newActiveMenus = {};
+    const menuGroups = menuGroupsRef.current;
     
-    menuItems.forEach(item => {
-      // Ana menü aktifliği
-      if (location.pathname.startsWith(item.path) || (item.path === '/dashboard' && location.pathname === '/')) {
-        newActiveMenus[item.path] = true;
-        
-        // Alt menüler varsa kontrol et
-        if (item.submenu) {
-          item.submenu.forEach(subItem => {
-            if (location.pathname === subItem.path || 
-                (subItem.path === '/tickets' && location.pathname.startsWith('/tickets') && 
-                 !location.pathname.includes('/create'))) {
-              newActiveMenus[subItem.path] = true;
-            }
-          });
+    menuGroups.forEach(group => {
+      group.items.forEach(item => {
+        // Ana menü aktifliği
+        if (location.pathname.startsWith(item.path) || 
+            (item.path === '/dashboard' && location.pathname === '/')) {
+          newActiveMenus[item.path] = true;
         }
-      }
+      });
     });
     
     setActiveMenus(newActiveMenus);
-  }, [location.pathname, menuItems]);
-
-  const toggleSubmenu = (path) => {
-    setActiveMenus(prev => ({
-      ...prev,
-      [path]: !prev[path]
-    }));
-  };
+  }, [location.pathname]);
 
   // URL'in belirli bir yolda olup olmadığını kontrol et
   const isPathActive = (path) => {
     if (path === '/dashboard') {
-      return location.pathname === path || location.pathname === '/';
+      return location.pathname === '/' || location.pathname === '/dashboard';
     }
-    return location.pathname.startsWith(path);
-  };
-
-  // Aktif bağlantı kontrolü - tam eşleşme
-  const isExactPathActive = (path) => {
+    
+    // Tam eşleşme kontrolü
     if (path === '/tickets') {
-      return location.pathname === path || (location.pathname.startsWith('/tickets') && !location.pathname.includes('/create'));
+      return location.pathname === '/tickets';
     }
-    return location.pathname === path;
+    
+    if (path === '/tickets/create') {
+      return location.pathname === '/tickets/create';
+    }
+    
+    // Admin sayfaları için özel kontrol
+    if (path.startsWith('/admin/')) {
+      return location.pathname === path;
+    }
+    
+    // Diğer sayfalar için prefix kontrolü
+    return location.pathname.startsWith(path);
   };
 
   // Mobil görünümde sidebar dışına tıklama kontrolü
   const handleOverlayClick = () => {
     if (isMobile && isOpen && typeof toggleSidebar === 'function') {
       toggleSidebar();
+    }
+  };
+
+  // Çıkış işlemi
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Çıkış yapılırken hata:', error);
     }
   };
 
@@ -134,99 +163,41 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <h2>Tech Support</h2>
-      
         </div>
-        <div className="sidebar-menu">
-          {menuItems.map((item, index) => (
-            <div key={index}>
-              {item.requiredPermission ? (
-                <PermissionGate permission={item.requiredPermission}>
-                  {item.submenu ? (
-                    <>
-                      <div
-                        className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
-                        onClick={() => toggleSubmenu(item.path)}
-                      >
-                        <FontAwesomeIcon icon={item.icon} />
-                        <span>{item.label}</span>
-                        <FontAwesomeIcon 
-                          icon={activeMenus[item.path] ? faChevronDown : faChevronRight} 
-                          style={{ marginLeft: 'auto' }}
-                        />
-                      </div>
-                      {activeMenus[item.path] && (
-                        <div className="submenu">
-                          {item.submenu.map((subItem, subIndex) => (
-                            <Link
-                              key={subIndex}
-                              to={subItem.path}
-                              className={`submenu-item ${isExactPathActive(subItem.path) ? 'active' : ''}`}
-                              onClick={isMobile && typeof toggleSidebar === 'function' ? toggleSidebar : undefined}
-                            >
-                              <FontAwesomeIcon icon={subItem.icon} />
-                              <span>{subItem.label}</span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      to={item.path}
-                      className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
-                      onClick={isMobile && typeof toggleSidebar === 'function' ? toggleSidebar : undefined}
-                    >
-                      <FontAwesomeIcon icon={item.icon} />
-                      <span>{item.label}</span>
-                    </Link>
-                  )}
-                </PermissionGate>
-              ) : (
-                <>
-                  {item.submenu ? (
-                    <>
-                      <div
-                        className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
-                        onClick={() => toggleSubmenu(item.path)}
-                      >
-                        <FontAwesomeIcon icon={item.icon} />
-                        <span>{item.label}</span>
-                        <FontAwesomeIcon 
-                          icon={activeMenus[item.path] ? faChevronDown : faChevronRight} 
-                          style={{ marginLeft: 'auto' }}
-                        />
-                      </div>
-                      {activeMenus[item.path] && (
-                        <div className="submenu">
-                          {item.submenu.map((subItem, subIndex) => (
-                            <Link
-                              key={subIndex}
-                              to={subItem.path}
-                              className={`submenu-item ${isExactPathActive(subItem.path) ? 'active' : ''}`}
-                              onClick={isMobile && typeof toggleSidebar === 'function' ? toggleSidebar : undefined}
-                            >
-                              <FontAwesomeIcon icon={subItem.icon} />
-                              <span>{subItem.label}</span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      to={item.path}
-                      className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
-                      onClick={isMobile && typeof toggleSidebar === 'function' ? toggleSidebar : undefined}
-                    >
-                      <FontAwesomeIcon icon={item.icon} />
-                      <span>{item.label}</span>
-                    </Link>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
         
+        <div className="sidebar-menu">
+          {menuGroupsRef.current.map((group, groupIndex) => (
+            // Eğer bu grup admin izni gerektiriyorsa ve kullanıcı admin değilse gösterme
+            (!group.requiredPermission || 
+             (group.requiredPermission === 'admin' && user?.role === 'admin')) && (
+              <div key={groupIndex} className="menu-group">
+                <h3 className="group-title">{group.title}</h3>
+                
+                {group.items.map((item, itemIndex) => (
+                  <Link
+                    key={itemIndex}
+                    to={item.path}
+                    className={`menu-item ${isPathActive(item.path) ? 'active' : ''}`}
+                    onClick={isMobile && typeof toggleSidebar === 'function' ? toggleSidebar : undefined}
+                  >
+                    <FontAwesomeIcon icon={item.icon} />
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+              </div>
+            )
+          ))}
+
+          {/* Çıkış Yap butonu */}
+          <div className="menu-group logout-group">
+            <button 
+              className="menu-item logout-button"
+              onClick={handleLogout}
+            >
+              <FontAwesomeIcon icon={faSignOutAlt} />
+              <span>Çıkış Yap</span>
+            </button>
+          </div>
         </div>
       </div>
     </>
