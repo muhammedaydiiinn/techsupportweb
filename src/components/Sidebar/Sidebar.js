@@ -162,7 +162,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>Tech Support</h2>
+          <h2>Teknik Destek</h2>
         </div>
         
         <div className="sidebar-menu">

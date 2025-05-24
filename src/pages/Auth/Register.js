@@ -102,7 +102,7 @@ const Register = () => {
         <div className="auth-card">
           <div className="auth-header">
             <h1>Hesap Oluştur</h1>
-            <p>Tech Support'a hoş geldiniz!</p>
+            <p>Teknik Destek Portalı'na hoş geldiniz!</p>
           </div>
           
           <form onSubmit={handleSubmit} className="auth-form">
