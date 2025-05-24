@@ -18,6 +18,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { ticketService } from '../../../services/ticketService';
 import { toast } from 'react-toastify';
 import './Statistics.css';
+import { equipmentService } from '../../../services/equipmentService';
 
 const Statistics = () => {
   const navigate = useNavigate();
@@ -77,13 +78,8 @@ const Statistics = () => {
           setUserStats(userStatsResponse.data);
         }
         
-        // Ekipman istatistikleri için şimdilik örnek veri kullanıyoruz
-        // Gerçek uygulamada burası da API'den gelecek
-        setEquipmentStats({
-          total: 78,
-          active: 65,
-          maintenance: 13
-        });
+        // Ekipman istatistiklerini getir
+        fetchEquipmentStats();
         
         setError('');
       } catch (err) {
@@ -97,6 +93,37 @@ const Statistics = () => {
 
     fetchStats();
   }, []);
+
+  // Ekipman istatistiklerini getir
+  const fetchEquipmentStats = async () => {
+    try {
+      // Tüm ekipmanları getir
+      const allEquipmentResponse = await equipmentService.getAllEquipment();
+      
+      if (allEquipmentResponse && allEquipmentResponse.data) {
+        const allEquipment = allEquipmentResponse.data;
+        
+        // Aktif ekipmanları filtreleme
+        const activeEquipment = allEquipment.filter(
+          equipment => equipment.status === 'ACTIVE'
+        );
+        
+        // Bakımdaki ekipmanları filtreleme
+        const maintenanceEquipment = allEquipment.filter(
+          equipment => equipment.status === 'MAINTENANCE' || equipment.status === 'REPAIR'
+        );
+        
+        setEquipmentStats({
+          total: allEquipment.length,
+          active: activeEquipment.length,
+          maintenance: maintenanceEquipment.length
+        });
+      }
+    } catch (err) {
+      console.error('Ekipman istatistikleri yüklenirken hata:', err);
+      // Ana hata durumunu etkilemesin, sadece loglama yap
+    }
+  };
 
   if (loading) {
     return (
@@ -253,7 +280,7 @@ const Statistics = () => {
           </div>
         </div>
 
-        {/* Ekipman İstatistikleri - (Bu kısım API'den gelmiyor, örnek veri) */}
+        {/* Ekipman İstatistikleri - Artık API'den geliyor */}
         <div className="statistics-card equipment">
           <div className="card-header">
             <FontAwesomeIcon icon={faDesktop} />

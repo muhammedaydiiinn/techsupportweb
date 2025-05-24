@@ -86,7 +86,7 @@ const UserList = () => {
     }
 
     // Kendini admin olmaktan çıkarmaya çalışıyorsa engelle
-    if (userId === user.id && newRole !== 'admin') {
+    if (userId === user.id && newRole !== 'ADMIN') {
       toast.error('Kendi admin yetkinizi kaldıramazsınız');
       return;
     }
@@ -296,7 +296,7 @@ const UserList = () => {
                   <td>
                     {user?.role === 'admin' ? (
                       <select
-                        value={userData.department?.id || ''}
+                        value={userData.department_id || userData.department?.id || ''}
                         onChange={(e) => handleDepartmentChange(userData.id, e.target.value || null)}
                         className="department-select"
                         disabled={processing}
@@ -313,18 +313,18 @@ const UserList = () => {
                   <td>
                     {user?.role === 'admin' ? (
                       <select
-                        value={userData.role}
+                        value={(userData.role || '').toUpperCase()}
                         onChange={(e) => handleRoleChange(userData.id, e.target.value)}
                         className="role-select"
                         disabled={processing || userData.id === user.id}
                         title={userData.id === user.id ? "Kendi rolünüzü değiştiremezsiniz" : ""}
                       >
-                        <option value="admin">Admin</option>
-                        <option value="user">Kullanıcı</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="USER">Kullanıcı</option>
                       </select>
                     ) : (
                       <span className={`role-badge ${userData.role}`}>
-                        {userData.role === 'admin' ? 'Admin' : 'Kullanıcı'}
+                        {(userData.role || '').toUpperCase() === 'ADMIN' ? 'Admin' : 'Kullanıcı'}
                       </span>
                     )}
                   </td>
@@ -360,6 +360,7 @@ const UserList = () => {
           user={currentUser}
           onClose={handleFormClose}
           onSubmit={handleFormSubmit}
+          departments={departments}
         />
       )}
     </div>

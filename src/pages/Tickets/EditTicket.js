@@ -199,14 +199,16 @@ const EditTicket = () => {
             <label htmlFor="category">Kategori</label>
             <select
               id="category"
-              value={formData.category}
+              value={(formData.category || '').toUpperCase()}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               required
             >
               <option value="">Seçiniz</option>
-              <option value="hardware">Donanım</option>
-              <option value="software">Yazılım</option>
-              <option value="network">Ağ/İnternet</option>
+              <option value="HARDWARE">Donanım</option>
+              <option value="SOFTWARE">Yazılım</option>
+              <option value="NETWORK">Ağ/İnternet</option>
+              <option value="TECHNICAL">Teknik</option>
+              <option value="OTHER">Diğer</option>
             </select>
           </div>
 
@@ -214,15 +216,15 @@ const EditTicket = () => {
             <label htmlFor="priority">Öncelik</label>
             <select
               id="priority"
-              value={formData.priority}
+              value={(formData.priority || '').toUpperCase()}
               onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
               required
             >
               <option value="">Seçiniz</option>
-              <option value="low">Düşük</option>
-              <option value="medium">Normal</option>
-              <option value="high">Yüksek</option>
-              <option value="critical">Acil</option>
+              <option value="LOW">Düşük</option>
+              <option value="MEDIUM">Normal</option>
+              <option value="HIGH">Yüksek</option>
+              <option value="CRITICAL">Acil</option>
             </select>
           </div>
 
@@ -230,15 +232,16 @@ const EditTicket = () => {
             <label htmlFor="status">Durum</label>
             <select
               id="status"
-              value={formData.status}
+              value={(formData.status || '').toUpperCase()}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               required
             >
               <option value="">Seçiniz</option>
-              <option value="open">Açık</option>
-              <option value="in_progress">İşlemde</option>
-              <option value="resolved">Çözüldü</option>
-              <option value="closed">Kapandı</option>
+              <option value="OPEN">Açık</option>
+              <option value="IN_PROGRESS">İşlemde</option>
+              <option value="WAITING">Beklemede</option>
+              <option value="RESOLVED">Çözüldü</option>
+              <option value="CLOSED">Kapandı</option>
             </select>
           </div>
         </div>

@@ -245,20 +245,52 @@ const ticketService = {
     try {
       let headers = {};
       
+      // FormData kontrolü yap
+      const isFormData = ticketData instanceof FormData;
+      
       // Eğer FormData kullanılıyorsa, Content-Type header'ını ayarlama (browser otomatik ekler)
-      if (!(ticketData instanceof FormData)) {
+      if (!isFormData) {
         headers = {
           'Content-Type': 'application/json'
         };
+        
+        // Eğer FormData değilse, doğrudan JSON verisini düzenle
+        // API'nin beklediği enum değerlerini büyük harfe çevir
+        const formattedData = { ...ticketData };
+        
+        // category enum değerini düzelt
+        if (formattedData.category && typeof formattedData.category === 'string') {
+          formattedData.category = formattedData.category.toUpperCase();
+        }
+        
+        // priority enum değerini düzelt
+        if (formattedData.priority && typeof formattedData.priority === 'string') {
+          formattedData.priority = formattedData.priority.toUpperCase();
+        }
+        
+        // status enum değerini düzelt (varsa)
+        if (formattedData.status && typeof formattedData.status === 'string') {
+          formattedData.status = formattedData.status.toUpperCase();
+        }
+        
+        console.log('Düzenlenmiş yeni talep verisi:', formattedData);
+        
+        const response = await axiosInstance.post(`/tickets`, formattedData, { headers });
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        // FormData durumunda doğrudan gönder
+        // Not: FormData kullanılıyorsa, genellikle içeriği burada düzenlemek zordur
+        // Bu durumda FormData oluşturulmadan önce değerlerin düzenlenmesi gerekir
+        console.log('FormData tipinde talep verisi gönderiliyor');
+        const response = await axiosInstance.post(`/tickets`, ticketData, { headers });
+        return {
+          success: true,
+          data: response.data
+        };
       }
-      console.log('Yeni talep verisi:', ticketData);
-      
-      const response = await axiosInstance.post(`/tickets`, ticketData, { headers });
-      // API.js servisinde kullanılan success formatına uygun yanıt döndür
-      return {
-        success: true,
-        data: response.data
-      };
     } catch (error) {
       console.error('Talep oluşturulurken hata:', error);
       // API.js servisinde kullanılan hata formatına uygun yanıt döndür
@@ -273,7 +305,27 @@ const ticketService = {
   // Talep güncelle
   updateTicket: async (id, ticketData) => {
     try {
-      const response = await axiosInstance.put(`/tickets/${id}`, ticketData);
+      // API'nin beklediği enum değerlerini büyük harfe çevir
+      const formattedData = { ...ticketData };
+      
+      // category enum değerini düzelt
+      if (formattedData.category && typeof formattedData.category === 'string') {
+        formattedData.category = formattedData.category.toUpperCase();
+      }
+      
+      // priority enum değerini düzelt
+      if (formattedData.priority && typeof formattedData.priority === 'string') {
+        formattedData.priority = formattedData.priority.toUpperCase();
+      }
+      
+      // status enum değerini düzelt
+      if (formattedData.status && typeof formattedData.status === 'string') {
+        formattedData.status = formattedData.status.toUpperCase();
+      }
+      
+      console.log('Düzenlenmiş talep verisi:', formattedData);
+      
+      const response = await axiosInstance.put(`/tickets/${id}`, formattedData);
       // API.js servisinde kullanılan success formatına uygun yanıt döndür
       return {
         success: true,
@@ -293,7 +345,12 @@ const ticketService = {
   // Talep durumunu güncelle
   updateTicketStatus: async (id, status) => {
     try {
-      const response = await axiosInstance.put(`/tickets/${id}/status`, { status });
+      // Status değerini büyük harfe çevir
+      const formattedStatus = typeof status === 'string' ? status.toUpperCase() : status;
+      
+      console.log('Düzenlenmiş durum:', formattedStatus);
+      
+      const response = await axiosInstance.put(`/tickets/${id}/status`, { status: formattedStatus });
       // API.js servisinde kullanılan success formatına uygun yanıt döndür
       return {
         success: true,

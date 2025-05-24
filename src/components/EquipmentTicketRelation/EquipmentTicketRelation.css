@@ -1,9 +1,11 @@
 .equipment-ticket-relation {
   margin: 20px 0;
-  padding: 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #f9f9f9;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--card-background);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .equipment-relation-loading {
@@ -11,111 +13,163 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  color: #666;
+  padding: 25px;
+  color: var(--text-secondary);
 }
 
 .equipment-relation-loading svg {
   font-size: 24px;
   margin-bottom: 10px;
-  color: #4a6da7;
+  color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .section-header h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #444;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .add-equipment-btn {
-  background-color: #4a6da7;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .add-equipment-btn:hover {
-  background-color: #3c5a8a;
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.add-equipment-btn:active {
+  transform: translateY(1px);
 }
 
 .add-equipment-btn:disabled {
-  background-color: #b3c2d8;
+  background-color: var(--secondary-color);
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
 .add-equipment-form {
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #f0f4f9;
-  border-radius: 6px;
-  border: 1px solid #d0d9e6;
+  margin-bottom: 25px;
+  padding: 20px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .form-group select {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   font-size: 0.95rem;
+  background-color: var(--input-background);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.form-group select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  outline: none;
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .cancel-btn {
-  background-color: #e0e0e0;
-  color: #444;
+  background-color: var(--secondary-color);
+  color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .cancel-btn:hover {
-  background-color: #d0d0d0;
+  background-color: var(--secondary-hover);
+  transform: translateY(-1px);
+}
+
+.cancel-btn:active {
+  transform: translateY(1px);
 }
 
 .add-btn {
-  background-color: #4a6da7;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
 .add-btn:hover {
-  background-color: #3c5a8a;
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.add-btn:active {
+  transform: translateY(1px);
 }
 
 .add-btn:disabled, .cancel-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
 .equipment-list {
@@ -128,11 +182,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background-color: white;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  padding: 15px;
+  background-color: var(--surface-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.equipment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 
 .equipment-info {
@@ -140,9 +200,9 @@
 }
 
 .equipment-info h4 {
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0;
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .equipment-details {
@@ -154,36 +214,44 @@
 .equipment-details p {
   margin: 0;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .remove-btn {
-  background-color: #f44336;
+  background-color: var(--error-color);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
 .remove-btn:hover {
-  background-color: #d32f2f;
+  background-color: var(--error-hover);
+  transform: translateY(-1px);
+}
+
+.remove-btn:active {
+  transform: translateY(1px);
 }
 
 .remove-btn:disabled {
-  background-color: #e57373;
+  opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
 .no-equipment {
-  padding: 15px;
+  padding: 20px;
   text-align: center;
-  color: #666;
-  background-color: white;
-  border-radius: 6px;
-  border: 1px dashed #ccc;
+  color: var(--text-secondary);
+  background-color: var(--surface-color);
+  border-radius: 8px;
+  border: 1px dashed var(--border-color);
+  margin-top: 10px;
 } 

@@ -6,7 +6,7 @@ import { userRoles } from '../../services/userService';
 import { departmentService } from '../../services/departmentService';
 import './UserForm.css';
 
-const UserForm = ({ user, onClose, onSubmit }) => {
+const UserForm = ({ user, onClose, onSubmit, departments = [] }) => {
   const [formData, setFormData] = useState({
     email: '',
     first_name: '',
@@ -18,29 +18,36 @@ const UserForm = ({ user, onClose, onSubmit }) => {
     is_active: true
   });
   
-  const [departments, setDepartments] = useState([]);
+  const [localDepartments, setLocalDepartments] = useState([]);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [loadingDepartments, setLoadingDepartments] = useState(true);
+  const [loadingDepartments, setLoadingDepartments] = useState(departments.length === 0);
 
-  // Departmanları yükle
+  // Eğer dışarıdan departmanlar geldiyse, onları kullan
   useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        setLoadingDepartments(true);
-        const response = await departmentService.getAllDepartments();
-        if (response && response.data) {
-          setDepartments(response.data);
-        }
-      } catch (err) {
-        console.error('Departmanlar yüklenirken hata:', err);
-      } finally {
-        setLoadingDepartments(false);
-      }
-    };
+    if (departments && departments.length > 0) {
+      setLocalDepartments(departments);
+      setLoadingDepartments(false);
+    } else {
+      // Dışarıdan departmanlar gelmezse, API'den getir
+      fetchDepartments();
+    }
+  }, [departments]);
 
-    fetchDepartments();
-  }, []);
+  // Departmanları yükle (dışarıdan gelmediğinde)
+  const fetchDepartments = async () => {
+    try {
+      setLoadingDepartments(true);
+      const response = await departmentService.getAllDepartments();
+      if (response && response.data) {
+        setLocalDepartments(response.data);
+      }
+    } catch (err) {
+      console.error('Departmanlar yüklenirken hata:', err);
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
 
   // Düzenleme modunda formu doldur
   useEffect(() => {
@@ -256,8 +263,8 @@ const UserForm = ({ user, onClose, onSubmit }) => {
                 value={formData.password_confirm}
                 onChange={handleChange}
                 disabled={saving}
-                placeholder="Şifre tekrarı"
-                required={!user || formData.password !== ""}
+                placeholder="Şifrenizi tekrar girin"
+                required={!user || formData.password !== ''}
               />
               {errors.password_confirm && <span className="error-message">{errors.password_confirm}</span>}
             </div>
@@ -275,13 +282,9 @@ const UserForm = ({ user, onClose, onSubmit }) => {
                 value={formData.role}
                 onChange={handleChange}
                 disabled={saving}
-                required
               >
-                {userRoles.map(role => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
+                <option value="user">Kullanıcı</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
             
@@ -298,29 +301,29 @@ const UserForm = ({ user, onClose, onSubmit }) => {
                 disabled={saving || loadingDepartments}
               >
                 <option value="">Departmansız</option>
-                {departments.map(department => (
-                  <option key={department.id} value={department.id}>
-                    {department.name}
-                  </option>
-                ))}
+                {loadingDepartments ? (
+                  <option disabled>Departmanlar yükleniyor...</option>
+                ) : (
+                  localDepartments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))
+                )}
               </select>
               {loadingDepartments && <span className="loading-message">Departmanlar yükleniyor...</span>}
-              {!loadingDepartments && departments.length === 0 && 
-                <span className="info-message">Departman bulunamadı</span>
-              }
             </div>
           </div>
           
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
+          <div className="checkbox-group">
+            <label className="checkbox-label" htmlFor="is_active">
               <input
                 type="checkbox"
+                id="is_active"
                 name="is_active"
                 checked={formData.is_active}
                 onChange={handleChange}
                 disabled={saving}
               />
-              <span>Aktif Kullanıcı</span>
+              Aktif Kullanıcı
             </label>
           </div>
           
@@ -341,10 +344,12 @@ const UserForm = ({ user, onClose, onSubmit }) => {
               {saving ? (
                 <>
                   <FontAwesomeIcon icon={faSpinner} spin />
-                  <span>Kaydediliyor...</span>
+                  Kaydediliyor...
                 </>
               ) : (
-                'Kaydet'
+                <>
+                  {user ? 'Güncelle' : 'Oluştur'}
+                </>
               )}
             </button>
           </div>
@@ -357,7 +362,8 @@ const UserForm = ({ user, onClose, onSubmit }) => {
 UserForm.propTypes = {
   user: PropTypes.object,
   onClose: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired
+  onSubmit: PropTypes.func.isRequired,
+  departments: PropTypes.array
 };
 
 export default UserForm; 

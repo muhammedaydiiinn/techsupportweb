@@ -10,6 +10,7 @@ const PublicRoute = ({ children }) => {
     return (
       <div className="loading-spinner">
         <div className="spinner"></div>
+        <div className="loading-text">Yükleniyor...</div>
       </div>
     );
   }

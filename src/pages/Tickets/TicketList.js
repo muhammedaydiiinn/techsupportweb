@@ -92,25 +92,29 @@ const TicketList = () => {
       width: '150px',
       cell: row => {
         const statuses = {
-          'open': 'Açık',
-          'in_progress': 'İşlemde',
-          'resolved': 'Çözüldü',
-          'closed': 'Kapandı'
+          'OPEN': 'Açık',
+          'IN_PROGRESS': 'İşlemde',
+          'RESOLVED': 'Çözüldü',
+          'CLOSED': 'Kapandı',
+          'WAITING': 'Beklemede'
         };
+
+        const displayStatus = statuses[row.status] || statuses[row.status?.toUpperCase()] || row.status;
 
         return user?.role === 'admin' ? (
           <select
-            value={row.status}
+            value={row.status?.toUpperCase()}
             onChange={(e) => handleStatusChange(row.id, e.target.value)}
             className="status-select"
           >
-            <option value="open">Açık</option>
-            <option value="in_progress">İşlemde</option>
-            <option value="resolved">Çözüldü</option>
-            <option value="closed">Kapandı</option>
+            <option value="OPEN">Açık</option>
+            <option value="IN_PROGRESS">İşlemde</option>
+            <option value="WAITING">Beklemede</option>
+            <option value="RESOLVED">Çözüldü</option>
+            <option value="CLOSED">Kapandı</option>
           </select>
         ) : (
-          statuses[row.status] || row.status
+          displayStatus
         );
       }
     },
