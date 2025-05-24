@@ -35,11 +35,16 @@ const Layout = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  // İçerik alanının sınıflarını belirle
+  const contentClasses = isMobile 
+    ? 'main-content' 
+    : `main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`;
+
   return (
     <div className="layout">
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       
-      <main className={`main-content ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      <main className={contentClasses}>
         <Header onToggleSidebar={toggleSidebar} />
         
         <div className="content-container">

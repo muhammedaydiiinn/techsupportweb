@@ -514,3 +514,37 @@
     grid-template-columns: repeat(2, 1fr);
   }
 } 
+
+.status-badge, .priority-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.status-badge.open {
+  background-color: #fff3e0;
+  color: #f59e0b;
+}
+
+.status-badge.resolved {
+  background-color: #e8f5e9;
+  color: #22c55e;
+}
+
+.priority-badge.low {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.priority-badge.medium {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.priority-badge.high {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}

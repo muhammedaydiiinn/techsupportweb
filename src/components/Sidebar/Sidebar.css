@@ -1,3 +1,25 @@
+:root {
+  --sidebar-bg: var(--surface-color);
+  --sidebar-text: var(--text-secondary);
+  --sidebar-title: var(--primary-color);
+  --sidebar-border: var(--border-color);
+  --sidebar-hover: rgba(0, 0, 0, 0.05);
+  --sidebar-active: rgba(26, 32, 44, 0.1);
+  --sidebar-active-text: var(--primary-color);
+  --sidebar-submenu-bg: var(--background-color);
+}
+
+[data-theme="dark"] {
+  --sidebar-bg: var(--surface-color);
+  --sidebar-text: var(--text-secondary);
+  --sidebar-title: var(--text-primary);
+  --sidebar-border: var(--border-color);
+  --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --sidebar-active: rgba(59, 130, 246, 0.2);
+  --sidebar-active-text: var(--primary-color);
+  --sidebar-submenu-bg: rgba(15, 23, 42, 0.3);
+}
+
 .sidebar {
   background-color: var(--sidebar-bg);
   color: var(--sidebar-text);
@@ -6,8 +28,8 @@
   position: fixed;
   left: 0;
   top: 0;
-  transition: transform 0.3s ease;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
   z-index: 1001;
   overflow-y: auto;
 }
@@ -24,12 +46,14 @@
   padding: 20px;
   text-align: center;
   border-bottom: 1px solid var(--sidebar-border);
+  margin-bottom: 10px;
 }
 
 .sidebar-header h2 {
   margin: 0;
   color: var(--sidebar-title);
   font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .sidebar-menu {
@@ -48,21 +72,31 @@
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
   position: relative;
+  margin-bottom: 2px;
+  border-radius: 0 4px 4px 0;
 }
 
 .menu-item:hover {
   background-color: var(--sidebar-hover);
+  color: var(--text-primary);
 }
 
 .menu-item.active {
   background-color: var(--sidebar-active);
   color: var(--sidebar-active-text);
-  border-left: 3px solid var(--primary, #45C49C);
+  border-left: 3px solid var(--primary-color);
+  font-weight: 500;
 }
 
 .menu-item svg {
   margin-right: 10px;
   width: 20px;
+  opacity: 0.8;
+}
+
+.menu-item.active svg {
+  opacity: 1;
+  color: var(--primary-color);
 }
 
 .submenu {
@@ -81,21 +115,32 @@
   text-decoration: none;
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 2px;
+  font-size: 0.95rem;
 }
 
 .submenu-item:hover {
   background-color: var(--sidebar-hover);
+  color: var(--text-primary);
 }
 
 .submenu-item.active {
   background-color: var(--sidebar-active);
   color: var(--sidebar-active-text);
-  border-left: 3px solid var(--primary, #45C49C);
+  border-left: 3px solid var(--primary-color);
+  font-weight: 500;
 }
 
 .submenu-item svg {
   margin-right: 10px;
   width: 16px;
+  opacity: 0.8;
+}
+
+.submenu-item.active svg {
+  opacity: 1;
+  color: var(--primary-color);
 }
 
 /* Mobil responsive düzenlemeler */
