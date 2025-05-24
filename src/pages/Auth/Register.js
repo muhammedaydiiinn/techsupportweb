@@ -87,119 +87,154 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <h1 className="auth-title">Hesap Oluştur</h1>
-        <p className="auth-subtitle">Tech Support'a hoş geldiniz!</p>
-        
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="input-container">
-            <FontAwesomeIcon icon={faUser} className="input-icon" />
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="Adınız"
-              className="input-field"
-            />
+    <div className="auth-container">
+      <div className="auth-layout">
+        <div className="auth-sidebar">
+          <div className="auth-sidebar-content">
+            <h2>Yeni Hesap Oluştur</h2>
+            <p>
+              Teknik destek portalımıza üye olarak, sorunlarınızı hızlı ve etkin 
+              bir şekilde çözüme kavuşturabilirsiniz.
+            </p>
           </div>
+        </div>
 
-          <div className="input-container">
-            <FontAwesomeIcon icon={faUser} className="input-icon" />
-            <input
-              type="text"
-              name="surname"
-              value={formData.surname}
-              onChange={(e) => setFormData({...formData, surname: e.target.value})}
-              placeholder="Soyadınız"
-              className="input-field"
-            />
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Hesap Oluştur</h1>
+            <p>Tech Support'a hoş geldiniz!</p>
           </div>
-
-          <div className="input-container">
-            <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              placeholder="Email adresiniz"
-              className="input-field"
-            />
-          </div>
-
-          <div className="input-container">
-            <FontAwesomeIcon icon={faLock} className="input-icon" />
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
-              placeholder="Şifreniz"
-              className="input-field"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="password-toggle"
-            >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-            </button>
-          </div>
-
-          <div className="input-container">
-            <FontAwesomeIcon icon={faLock} className="input-icon" />
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password_confirm"
-              value={formData.password_confirm}
-              onChange={(e) => setFormData({...formData, password_confirm: e.target.value})}
-              placeholder="Şifrenizi tekrar girin"
-              className="input-field"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="password-toggle"
-            >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-            </button>
-          </div>
-
-          {error && (
-            <div className="error-message">
-              <FontAwesomeIcon icon={faExclamationCircle} />
-              <span>{typeof error === 'string' ? error : 'Kayıt işlemi başarısız oldu'}</span>
-            </div>
-          )}
           
-          {success && (
-            <div className="success-message">
-              <FontAwesomeIcon icon={faCheckCircle} />
-              Kayıt başarılı! Yönlendiriliyorsunuz...
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="name">
+                  <FontAwesomeIcon icon={faUser} /> Ad
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  placeholder="Adınız"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="surname">
+                  <FontAwesomeIcon icon={faUser} /> Soyad
+                </label>
+                <input
+                  type="text"
+                  id="surname"
+                  name="surname"
+                  value={formData.surname}
+                  onChange={(e) => setFormData({...formData, surname: e.target.value})}
+                  placeholder="Soyadınız"
+                  required
+                />
+              </div>
             </div>
-          )}
 
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <FontAwesomeIcon icon={faSpinner} spin />
-                <span>Kaydediliyor...</span>
-              </>
-            ) : (
-              'Kayıt Ol'
+            <div className="form-group">
+              <label htmlFor="email">
+                <FontAwesomeIcon icon={faEnvelope} /> E-posta
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                placeholder="E-posta adresiniz"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">
+                <FontAwesomeIcon icon={faLock} /> Şifre
+              </label>
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  placeholder="Şifreniz (en az 8 karakter)"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="password-toggle"
+                >
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password_confirm">
+                <FontAwesomeIcon icon={faLock} /> Şifre (Tekrar)
+              </label>
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password_confirm"
+                  name="password_confirm"
+                  value={formData.password_confirm}
+                  onChange={(e) => setFormData({...formData, password_confirm: e.target.value})}
+                  placeholder="Şifrenizi tekrar girin"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="password-toggle"
+                >
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="auth-error">
+                <FontAwesomeIcon icon={faExclamationCircle} />
+                <span>{typeof error === 'string' ? error : 'Kayıt işlemi başarısız oldu'}</span>
+              </div>
             )}
-          </button>
+            
+            {success && (
+              <div className="auth-success">
+                <FontAwesomeIcon icon={faCheckCircle} />
+                Kayıt başarılı! Yönlendiriliyorsunuz...
+              </div>
+            )}
 
-          <Link to="/login" className="auth-link">
-            Zaten hesabınız var mı? Giriş yapın
-          </Link>
-        </form>
+            <button 
+              type="submit" 
+              className="auth-button"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <FontAwesomeIcon icon={faSpinner} spin />
+                  <span>Kaydediliyor...</span>
+                </>
+              ) : (
+                'Kayıt Ol'
+              )}
+            </button>
+          </form>
+          
+          <div className="auth-footer">
+            <p>Zaten hesabınız var mı? <Link to="/login" className="auth-link">Giriş Yap</Link></p>
+          </div>
+        </div>
       </div>
     </div>
   );

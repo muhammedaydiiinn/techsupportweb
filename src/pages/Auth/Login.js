@@ -51,52 +51,64 @@ const Login = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>Giriş Yap</h1>
-          <p>Teknik destek sistemine hoş geldiniz</p>
+      <div className="auth-layout">
+        <div className="auth-sidebar">
+          <div className="auth-sidebar-content">
+            <h2>Teknik Destek Portalı</h2>
+            <p>
+              Teknik destek taleplerini oluşturmak, takip etmek ve çözüme kavuşturmak 
+              için tasarlanmış modern platformumuza hoş geldiniz.
+            </p>
+          </div>
         </div>
-        
-        {error && (
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">
-              <FontAwesomeIcon icon={faEnvelope} /> E-posta
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="E-posta adresiniz"
-              required
-            />
+
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Giriş Yap</h1>
+            <p>Teknik destek sistemine hoş geldiniz</p>
           </div>
           
-          <div className="form-group">
-            <label htmlFor="password">
-              <FontAwesomeIcon icon={faLock} /> Şifre
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Şifreniz"
-              required
-            />
-          </div>
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
           
-          <div className="form-actions">
-            <div className="auth-links">
-              <Link to="/forgot-password" className="auth-link">
-                Şifremi Unuttum
-              </Link>
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="email">
+                <FontAwesomeIcon icon={faEnvelope} /> E-posta
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-posta adresiniz"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="password">
+                <FontAwesomeIcon icon={faLock} /> Şifre
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Şifreniz"
+                required
+              />
+            </div>
+            
+            <div className="form-actions">
+              <div className="auth-links">
+                <Link to="/forgot-password" className="auth-link">
+                  Şifremi Unuttum
+                </Link>
+              </div>
             </div>
             
             <button 
@@ -110,11 +122,11 @@ const Login = () => {
                 </>
               ) : 'Giriş Yap'}
             </button>
+          </form>
+          
+          <div className="auth-footer">
+            <p>Hesabınız yok mu? <Link to="/register" className="auth-link">Kayıt Ol</Link></p>
           </div>
-        </form>
-        
-        <div className="auth-footer">
-          <p>Hesabınız yok mu? <Link to="/register" className="auth-link">Kayıt Ol</Link></p>
         </div>
       </div>
     </div>

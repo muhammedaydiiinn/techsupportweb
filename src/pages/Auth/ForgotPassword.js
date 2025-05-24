@@ -44,61 +44,73 @@ const ForgotPassword = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>Şifremi Unuttum</h1>
-          <p>Şifre sıfırlama bağlantısı için e-posta adresinizi girin</p>
+      <div className="auth-layout">
+        <div className="auth-sidebar">
+          <div className="auth-sidebar-content">
+            <h2>Şifre Sıfırlama</h2>
+            <p>
+              Şifrenizi unuttuysanız endişelenmeyin. E-posta adresinizi girerek 
+              kolayca şifrenizi sıfırlayabilirsiniz.
+            </p>
+          </div>
         </div>
-        
-        {error && (
-          <div className="auth-error">
-            {error}
+
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Şifremi Unuttum</h1>
+            <p>Şifre sıfırlama bağlantısı için e-posta adresinizi girin</p>
           </div>
-        )}
-        
-        {success ? (
-          <div className="auth-success">
-            <p>Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.</p>
-            <p>Lütfen e-postanızı kontrol edin ve bağlantıya tıklayarak şifrenizi sıfırlayın.</p>
-            <Link to="/login" className="auth-button">
-              Giriş Sayfasına Dön
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="email">
-                <FontAwesomeIcon icon={faEnvelope} /> E-posta
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="E-posta adresiniz"
-                required
-              />
+          
+          {error && (
+            <div className="auth-error">
+              {error}
             </div>
-            
-            <button 
-              type="submit" 
-              className="auth-button" 
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} spin /> İşleniyor...
-                </>
-              ) : 'Şifre Sıfırlama Bağlantısı Gönder'}
-            </button>
-            
-            <div className="auth-footer">
-              <Link to="/login" className="auth-link">
+          )}
+          
+          {success ? (
+            <div className="auth-success">
+              <p>Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.</p>
+              <p>Lütfen e-postanızı kontrol edin ve bağlantıya tıklayarak şifrenizi sıfırlayın.</p>
+              <Link to="/login" className="auth-button">
                 Giriş Sayfasına Dön
               </Link>
             </div>
-          </form>
-        )}
+          ) : (
+            <form onSubmit={handleSubmit} className="auth-form">
+              <div className="form-group">
+                <label htmlFor="email">
+                  <FontAwesomeIcon icon={faEnvelope} /> E-posta
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-posta adresiniz"
+                  required
+                />
+              </div>
+              
+              <button 
+                type="submit" 
+                className="auth-button" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <FontAwesomeIcon icon={faSpinner} spin /> İşleniyor...
+                  </>
+                ) : 'Şifre Sıfırlama Bağlantısı Gönder'}
+              </button>
+              
+              <div className="auth-footer">
+                <Link to="/login" className="auth-link">
+                  Giriş Sayfasına Dön
+                </Link>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );
