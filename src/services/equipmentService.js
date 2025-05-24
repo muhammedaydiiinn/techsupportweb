@@ -55,16 +55,18 @@ const equipmentService = {
       const data = {
         name: equipmentData.name,
         description: equipmentData.description || '',
-        equipment_type: equipmentData.equipment_type || 'computer',
-        status: equipmentData.status || 'active',
+        equipment_type: equipmentData.equipment_type || 'COMPUTER',
+        status: equipmentData.status || 'ACTIVE',
         serial_number: equipmentData.serial_number || '',
         model: equipmentData.model || '',
         manufacturer: equipmentData.manufacturer || '',
-        purchase_date: equipmentData.purchase_date || null,
-        warranty_expiry: equipmentData.warranty_expiry || null,
+        purchase_date: equipmentData.purchase_date === '' ? null : equipmentData.purchase_date,
+        warranty_expiry: equipmentData.warranty_expiry === '' ? null : equipmentData.warranty_expiry,
         department_id: equipmentData.department_id, // Zorunlu alan
         assigned_to_id: equipmentData.assigned_to_id === '' ? null : equipmentData.assigned_to_id
       };
+      
+      console.log('Yeni ekipman verisi:', data);
       
       const response = await axiosInstance.post(`/equipment`, data);
       return response;
@@ -87,13 +89,23 @@ const equipmentService = {
       if (equipmentData.serial_number !== undefined) data.serial_number = equipmentData.serial_number;
       if (equipmentData.model !== undefined) data.model = equipmentData.model;
       if (equipmentData.manufacturer !== undefined) data.manufacturer = equipmentData.manufacturer;
-      if (equipmentData.purchase_date !== undefined) data.purchase_date = equipmentData.purchase_date;
-      if (equipmentData.warranty_expiry !== undefined) data.warranty_expiry = equipmentData.warranty_expiry;
+      
+      // Tarih alanlarını kontrol et ve boş değer olduğunda null gönder
+      if (equipmentData.purchase_date !== undefined) {
+        data.purchase_date = equipmentData.purchase_date === '' ? null : equipmentData.purchase_date;
+      }
+      
+      if (equipmentData.warranty_expiry !== undefined) {
+        data.warranty_expiry = equipmentData.warranty_expiry === '' ? null : equipmentData.warranty_expiry;
+      }
+      
       if (equipmentData.department_id !== undefined) data.department_id = equipmentData.department_id;
       if (equipmentData.assigned_to_id !== undefined) {
         // Boş string ise null olarak gönder, API UUID bekliyor
         data.assigned_to_id = equipmentData.assigned_to_id === '' ? null : equipmentData.assigned_to_id;
       }
+      
+      console.log('Güncellenecek ekipman verisi:', data);
       
       const response = await axiosInstance.put(`/equipment/${id}`, data);
       return response;

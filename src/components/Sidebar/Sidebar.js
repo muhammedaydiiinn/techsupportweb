@@ -56,11 +56,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       icon: faUser,
       label: 'Profil'
     },
-    {
-      path: '/settings',
-      icon: faCog,
-      label: 'Ayarlar'
-    }
+
   ], []); // Boş bağımlılık dizisi ile yalnızca bileşen ilk render edildiğinde oluşturulur
 
   // Mobil kontrolü
@@ -230,14 +226,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               )}
             </div>
           ))}
-          <Link 
-            to="/logout" 
-            className="menu-item" 
-            onClick={isMobile && typeof toggleSidebar === 'function' ? toggleSidebar : undefined}
-          >
-            <FontAwesomeIcon icon={faSignOutAlt} />
-            <span>Çıkış Yap</span>
-          </Link>
+        
         </div>
       </div>
     </>
