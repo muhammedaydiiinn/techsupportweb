@@ -8,7 +8,13 @@ import {
   faTrash,
   faSpinner,
   faArrowLeft,
-  faExclamationCircle
+  faExclamationCircle,
+  faNetworkWired,
+  faCheckCircle,
+  faToolbox,
+  faTriangleExclamation,
+  faTimesCircle,
+  faHistory
 } from '@fortawesome/free-solid-svg-icons';
 import { equipmentService, equipmentStatuses } from '../../../services/equipmentService';
 import { departmentService } from '../../../services/departmentService';
@@ -42,10 +48,6 @@ const EquipmentList = () => {
       const response = await equipmentService.getAllEquipment();
       
       if (response && response.data) {
-        
-        // Her bir ekipmanın departman bilgisini detaylı görelim
-      
-        
         // Verileri işleyerek, departman bilgilerinin doğru olmasını sağlayalım
         let processedEquipment = response.data.map(item => {
           // Departman bilgisi kontrol ediliyor
@@ -76,7 +78,6 @@ const EquipmentList = () => {
           if (equipmentWithMissingDepartments.length === 0) {
             return; // Eksik departman bilgisi yoksa işlem yapma
           }
-          
           
           // Her bir eksik departman bilgisi için asenkron olarak departman bilgisini çekelim
           const departmentPromises = equipmentWithMissingDepartments.map(async (item) => {
@@ -203,18 +204,37 @@ const EquipmentList = () => {
     }
   };
 
-  // Durum etiketi getir
+  // Durum etiketi ve icon getir
   const getStatusBadge = (status) => {
     const statusObj = equipmentStatuses.find(s => s.value === status) || { label: 'Bilinmiyor' };
     
     let colorClass = 'default';
-    if (status === 'active') colorClass = 'success';
-    if (status === 'maintenance' || status === 'repair') colorClass = 'warning';
-    if (status === 'broken') colorClass = 'danger';
-    if (status === 'retired') colorClass = 'secondary';
+    let icon = faNetworkWired;
+    
+    if (status === 'active') {
+      colorClass = 'success';
+      icon = faCheckCircle;
+    }
+    else if (status === 'maintenance') {
+      colorClass = 'warning';
+      icon = faToolbox;
+    }
+    else if (status === 'repair') {
+      colorClass = 'warning';
+      icon = faTriangleExclamation;
+    }
+    else if (status === 'broken') {
+      colorClass = 'danger';
+      icon = faTimesCircle;
+    }
+    else if (status === 'retired') {
+      colorClass = 'secondary';
+      icon = faHistory;
+    }
     
     return (
       <span className={`status-badge ${colorClass}`}>
+        <FontAwesomeIcon icon={icon} className="status-icon" />
         {statusObj.label}
       </span>
     );
@@ -234,7 +254,9 @@ const EquipmentList = () => {
       <div className="equipment-list-error">
         <FontAwesomeIcon icon={faExclamationCircle} />
         <span>{error}</span>
-        <button onClick={() => navigate('/admin')}>Geri Dön</button>
+        <button onClick={() => navigate('/admin')}>
+          <FontAwesomeIcon icon={faArrowLeft} /> Geri Dön
+        </button>
       </div>
     );
   }
@@ -265,60 +287,64 @@ const EquipmentList = () => {
         </button>
       </div>
 
-      {equipment.length === 0 ? (
-        <div className="empty-state">
-          <p>Henüz ekipman bulunmuyor</p>
-          <button onClick={handleAddEquipment} disabled={processing}>
-            <FontAwesomeIcon icon={faPlus} />
-            <span>Ekipman Oluştur</span>
-          </button>
-        </div>
-      ) : (
-        <div className="equipment-grid">
-          {equipment.map(item => (
-            <div key={item.id} className="equipment-card">
-              <div className="equipment-card-header">
-                <h3>{item.name}</h3>
-                <div className="equipment-actions">
-                  <button 
-                    className="edit-button"
-                    onClick={() => handleEditEquipment(item)}
-                    disabled={processing}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  <button 
-                    className="delete-button"
-                    onClick={() => handleDeleteEquipment(item.id, item.name)}
-                    disabled={processing}
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              </div>
-              <div className="equipment-card-body">
-                <p>{item.description || 'Açıklama yok'}</p>
-                <div className="equipment-meta">
-                  <div className="meta-item">
-                    <span className="meta-label">Seri No:</span>
-                    <span className="meta-value">{item.serial_number || '-'}</span>
-                  </div>
-                  <div className="meta-item">
-                    <span className="meta-label">Departman:</span>
-                    <span className="meta-value">
-                      {item.department?.name || (item.department_id ? 'Departman Yükleniyor...' : 'Atanmamış')}
-                    </span>
-                  </div>
-                  <div className="meta-item">
-                    <span className="meta-label">Durum:</span>
-                    {getStatusBadge(item.status)}
+      <div className="equipment-list-content">
+        {equipment.length === 0 ? (
+          <div className="empty-state">
+            <p>Henüz ekipman bulunmuyor</p>
+            <button onClick={handleAddEquipment} disabled={processing}>
+              <FontAwesomeIcon icon={faPlus} />
+              <span>Ekipman Oluştur</span>
+            </button>
+          </div>
+        ) : (
+          <div className="equipment-grid">
+            {equipment.map(item => (
+              <div key={item.id} className="equipment-card">
+                <div className="equipment-card-header">
+                  <h3>{item.name}</h3>
+                  <div className="equipment-actions">
+                    <button 
+                      className="edit-button"
+                      onClick={() => handleEditEquipment(item)}
+                      disabled={processing}
+                      title="Düzenle"
+                    >
+                      <FontAwesomeIcon icon={faEdit} />
+                    </button>
+                    <button 
+                      className="delete-button"
+                      onClick={() => handleDeleteEquipment(item.id, item.name)}
+                      disabled={processing}
+                      title="Sil"
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
                   </div>
                 </div>
+                <div className="equipment-card-body">
+                  <p>{item.description || 'Açıklama yok'}</p>
+                  <div className="equipment-meta">
+                    <div className="meta-item">
+                      <span className="meta-label">Seri No:</span>
+                      <span className="meta-value">{item.serial_number || '-'}</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Departman:</span>
+                      <span className="meta-value">
+                        {item.department?.name || (item.department_id ? 'Departman Yükleniyor...' : 'Atanmamış')}
+                      </span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Durum:</span>
+                      {getStatusBadge(item.status)}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Ekipman Ekleme/Düzenleme Formu */}
       {showForm && (

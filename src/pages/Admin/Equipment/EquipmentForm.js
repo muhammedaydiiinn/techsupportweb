@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faSpinner, faSave, faBan } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import { equipmentTypes, equipmentStatuses } from '../../../services/equipmentService';
 import { departmentService } from '../../../services/departmentService';
@@ -121,6 +121,7 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
             className="close-button"
             onClick={onClose}
             disabled={saving}
+            title="Kapat"
           >
             <FontAwesomeIcon icon={faTimes} />
           </button>
@@ -137,6 +138,7 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
               onChange={handleChange}
               disabled={saving}
               required
+              placeholder="Ekipman adını giriniz"
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
           </div>
@@ -150,6 +152,7 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
               onChange={handleChange}
               disabled={saving}
               rows="2"
+              placeholder="Ekipman hakkında açıklama"
             />
           </div>
           
@@ -199,6 +202,7 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
                 value={formData.serial_number}
                 onChange={handleChange}
                 disabled={saving}
+                placeholder="XYZ123456789"
               />
             </div>
             
@@ -211,6 +215,7 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
                 value={formData.model}
                 onChange={handleChange}
                 disabled={saving}
+                placeholder="Model adı"
               />
             </div>
           </div>
@@ -224,6 +229,7 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
               value={formData.manufacturer}
               onChange={handleChange}
               disabled={saving}
+              placeholder="Üretici firma"
             />
           </div>
           
@@ -261,29 +267,35 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
               value={formData.department_id}
               onChange={handleChange}
               disabled={saving || loadingDepartments}
-              required
             >
-              <option value="">Departman Seçiniz</option>
-              {departments.map(department => (
-                <option key={department.id} value={department.id}>
-                  {department.name}
+              <option value="">Departman Seçin</option>
+              {departments.map(dept => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
                 </option>
               ))}
             </select>
+            {loadingDepartments && (
+              <span className="loading-message">
+                <FontAwesomeIcon icon={faSpinner} spin /> Departmanlar yükleniyor...
+              </span>
+            )}
             {errors.department_id && <span className="error-message">{errors.department_id}</span>}
           </div>
           
           <div className="form-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="cancel-button"
               onClick={onClose}
               disabled={saving}
             >
-              İptal
+              <FontAwesomeIcon icon={faBan} />
+              <span>İptal</span>
             </button>
-            <button 
-              type="submit" 
+            
+            <button
+              type="submit"
               className="save-button"
               disabled={saving}
             >
@@ -293,7 +305,10 @@ const EquipmentForm = ({ equipment, onClose, onSubmit }) => {
                   <span>Kaydediliyor...</span>
                 </>
               ) : (
-                'Kaydet'
+                <>
+                  <FontAwesomeIcon icon={faSave} />
+                  <span>{equipment ? 'Güncelle' : 'Kaydet'}</span>
+                </>
               )}
             </button>
           </div>

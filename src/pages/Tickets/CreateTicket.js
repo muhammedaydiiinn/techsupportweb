@@ -147,14 +147,19 @@ const CreateTicket = () => {
   return (
     <div className="create-ticket-container">
       <div className="create-ticket-header">
-        <button 
-          className="back-button"
-          onClick={() => navigate('/tickets')}
-        >
-          <FontAwesomeIcon icon={faArrowLeft} />
-          <span>Geri</span>
-        </button>
-        <h1>Yeni Talep Oluştur</h1>
+        <div className="header-left">
+          <button 
+            className="back-button"
+            onClick={() => navigate('/tickets')}
+          >
+            <FontAwesomeIcon icon={faArrowLeft} />
+            <span>Geri</span>
+          </button>
+          <h1>
+            <FontAwesomeIcon icon={faPaperclip} />
+            Yeni Talep Oluştur
+          </h1>
+        </div>
       </div>
 
       {error && (
@@ -163,99 +168,100 @@ const CreateTicket = () => {
         </div>
       )}
         
-      <form onSubmit={handleSubmit} className="create-ticket-form">
+      <div className="create-ticket-content">
+        <form onSubmit={handleSubmit} className="create-ticket-form">
           <div className="form-group">
-          <label htmlFor="title">Başlık</label>
+            <label htmlFor="title">Başlık</label>
             <input
               type="text"
               id="title"
               value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
             />
           </div>
 
-        <div className="form-group">
-          <label htmlFor="description">Açıklama</label>
-          <textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            required
-            rows="5"
-          />
-        </div>
-
-        <div className="form-row">
           <div className="form-group">
-            <label htmlFor="category">Kategori</label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            <label htmlFor="description">Açıklama</label>
+            <textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
-              className="form-control"
-            >
-              <option value="">Kategori Seçin</option>
-              <option value="HARDWARE">Donanım</option>
-              <option value="SOFTWARE">Yazılım</option>
-              <option value="NETWORK">Ağ/İnternet</option>
-              <option value="TECHNICAL">Teknik</option>
-              <option value="OTHER">Diğer</option>
-            </select>
+              rows="5"
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="category">Kategori</label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                required
+                className="form-control"
+              >
+                <option value="">Kategori Seçin</option>
+                <option value="HARDWARE">Donanım</option>
+                <option value="SOFTWARE">Yazılım</option>
+                <option value="NETWORK">Ağ/İnternet</option>
+                <option value="TECHNICAL">Teknik</option>
+                <option value="OTHER">Diğer</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="priority">Öncelik</label>
+              <select
+                id="priority"
+                name="priority"
+                value={formData.priority}
+                onChange={(e) => {
+                  const newPriority = e.target.value;
+                  setFormData(prev => ({
+                    ...prev,
+                    priority: newPriority,
+                    support_level: newPriority === 'CRITICAL' ? SupportLevel.LEVEL_3 : SupportLevel.LEVEL_1
+                  }));
+                }}
+                required
+                className="form-control"
+              >
+                <option value="">Öncelik Seçin</option>
+                <option value="LOW">Düşük</option>
+                <option value="MEDIUM">Normal</option>
+                <option value="HIGH">Yüksek</option>
+                <option value="CRITICAL">Acil</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="support_level">Destek Seviyesi</label>
+              <select
+                id="support_level"
+                value={formData.support_level}
+                onChange={(e) => setFormData({ ...formData, support_level: e.target.value })}
+                required
+                disabled={formData.priority === 'critical'} // Kritik öncelikli ticketlar için değiştirilemez
+              >
+                {Object.entries(SupportLevelLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              {formData.priority === 'critical' && (
+                <small className="info-text">
+                  Kritik öncelikli ticketlar otomatik olarak Yönetici Destek seviyesine atanır
+                </small>
+              )}
+            </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="priority">Öncelik</label>
-            <select
-              id="priority"
-              name="priority"
-              value={formData.priority}
-              onChange={(e) => {
-                const newPriority = e.target.value;
-                setFormData(prev => ({
-                  ...prev,
-                  priority: newPriority,
-                  support_level: newPriority === 'CRITICAL' ? SupportLevel.LEVEL_3 : SupportLevel.LEVEL_1
-                }));
-              }}
-              required
-              className="form-control"
-            >
-              <option value="">Öncelik Seçin</option>
-              <option value="LOW">Düşük</option>
-              <option value="MEDIUM">Normal</option>
-              <option value="HIGH">Yüksek</option>
-              <option value="CRITICAL">Acil</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="support_level">Destek Seviyesi</label>
-            <select
-              id="support_level"
-              value={formData.support_level}
-              onChange={(e) => setFormData({ ...formData, support_level: e.target.value })}
-              required
-              disabled={formData.priority === 'critical'} // Kritik öncelikli ticketlar için değiştirilemez
-            >
-              {Object.entries(SupportLevelLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            {formData.priority === 'critical' && (
-              <small className="info-text">
-                Kritik öncelikli ticketlar otomatik olarak Yönetici Destek seviyesine atanır
-              </small>
-            )}
-          </div>
-          </div>
-
-          <div className="form-group">
-          <label htmlFor="attachments">Dosya Ekle (Maks. 5MB)</label>
+            <label htmlFor="attachments">Dosya Ekle (Maks. 5MB)</label>
             <div className="file-upload">
               <input
                 type="file"
@@ -263,7 +269,7 @@ const CreateTicket = () => {
                 onChange={handleFileChange}
                 multiple
                 className="file-input"
-              accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
               />
               <label htmlFor="attachments" className="file-label">
                 <FontAwesomeIcon icon={faPaperclip} />
@@ -274,7 +280,7 @@ const CreateTicket = () => {
               <div className="attachments-list">
                 {formData.attachments.map((file, index) => (
                   <div key={index} className="attachment-item">
-                  <span>{file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)</span>
+                    <span>{file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)</span>
                     <button
                       type="button"
                       onClick={() => removeAttachment(index)}
@@ -288,30 +294,31 @@ const CreateTicket = () => {
             )}
           </div>
 
-        <div className="form-actions">
-          <button 
-            type="button" 
-            className="cancel-button"
-            onClick={() => navigate('/tickets')}
-          >
-            İptal
-          </button>
-          <button 
-            type="submit" 
-            className="save-button"
-            disabled={saving}
-          >
-            {saving ? (
-              <>
-                <FontAwesomeIcon icon={faSpinner} spin />
-                <span>Kaydediliyor...</span>
-              </>
-            ) : (
-              'Oluştur'
-            )}
-          </button>
-        </div>
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="cancel-button"
+              onClick={() => navigate('/tickets')}
+            >
+              İptal
+            </button>
+            <button 
+              type="submit" 
+              className="save-button"
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <FontAwesomeIcon icon={faSpinner} spin />
+                  <span>Kaydediliyor...</span>
+                </>
+              ) : (
+                'Oluştur'
+              )}
+            </button>
+          </div>
         </form>
+      </div>
     </div>
   );
 };

@@ -5,7 +5,10 @@ import {
   faEye,
   faEdit,
   faTrash,
-  faUserPlus
+  faUserPlus,
+  faTicketAlt,
+  faPlus,
+  faArrowLeft
 } from '@fortawesome/free-solid-svg-icons';
 import DataTable from 'react-data-table-component';
 import { ticketService, adminService } from '../../api';
@@ -163,7 +166,7 @@ const TicketList = () => {
     },
     {
       name: 'İşlemler',
-      width: '120px',
+      width: '150px',
       cell: row => (
         <div className="action-buttons">
           <button
@@ -171,7 +174,7 @@ const TicketList = () => {
             onClick={() => navigate(`/tickets/${row.id}`)}
             title="Görüntüle"
           >
-            <FontAwesomeIcon icon={faEye} size="sm" />
+            <FontAwesomeIcon icon={faEye} />
           </button>
           {user?.role === 'admin' && (
             <>
@@ -180,21 +183,21 @@ const TicketList = () => {
                 onClick={() => navigate(`/tickets/${row.id}/edit`)}
                 title="Düzenle"
               >
-                <FontAwesomeIcon icon={faEdit} size="sm" />
+                <FontAwesomeIcon icon={faEdit} />
               </button>
               <button
                 className="action-button assign"
                 onClick={() => handleAssignClick(row.id)}
                 title="Ata"
               >
-                <FontAwesomeIcon icon={faUserPlus} size="sm" />
+                <FontAwesomeIcon icon={faUserPlus} />
               </button>
               <button
                 className="action-button delete"
                 onClick={() => handleDelete(row.id)}
                 title="Sil"
               >
-                <FontAwesomeIcon icon={faTrash} size="sm" />
+                <FontAwesomeIcon icon={faTrash} />
               </button>
             </>
           )}
@@ -385,46 +388,65 @@ const TicketList = () => {
 
   return (
     <div className="ticket-list-container">
-      <DataTable
-        columns={columns}
-        data={tickets}
-        progressPending={loading}
-        pagination
-        paginationServer
-        paginationTotalRows={totalItems}
-        onChangeRowsPerPage={handlePerRowsChange}
-        onChangePage={handlePageChange}
-        defaultSortFieldId="id"
-        defaultSortAsc={true}
-        sortServer={false}
-        noDataComponent={
-          <div className="no-data">
-            <p>Henüz talep bulunmuyor</p>
-            <button 
-              className="create-ticket-button"
-              onClick={() => navigate('/tickets/create')}
-            >
-              Yeni Talep Oluştur
-            </button>
-          </div>
-        }
-        progressComponent={
-          <div className="loading">
-            <FontAwesomeIcon icon={faSpinner} spin />
-            <span>Yükleniyor...</span>
-          </div>
-        }
-        customStyles={customStyles}
-        actions={
+      <div className="ticket-list-header">
+        <div className="header-left">
+          <button 
+            className="back-button"
+            onClick={() => navigate('/')}
+          >
+            <FontAwesomeIcon icon={faArrowLeft} />
+            <span>Geri</span>
+          </button>
+          <h1>
+            <FontAwesomeIcon icon={faTicketAlt} />
+            {user?.role === 'admin' ? 'Tüm Talepler' : 'Taleplerim'}
+          </h1>
+        </div>
+        
+        <div className="header-actions">
           <button 
             className="create-ticket-button"
             onClick={() => navigate('/tickets/create')}
           >
-            Yeni Talep Oluştur
+            <FontAwesomeIcon icon={faPlus} />
+            <span>Yeni Talep Oluştur</span>
           </button>
-        }
-        title={user?.role === 'admin' ? 'Tüm Talepler' : 'Taleplerim'}
-      />
+        </div>
+      </div>
+
+      <div className="ticket-list-content">
+        <DataTable
+          columns={columns}
+          data={tickets}
+          progressPending={loading}
+          pagination
+          paginationServer
+          paginationTotalRows={totalItems}
+          onChangeRowsPerPage={handlePerRowsChange}
+          onChangePage={handlePageChange}
+          defaultSortFieldId="id"
+          defaultSortAsc={true}
+          sortServer={false}
+          noDataComponent={
+            <div className="no-data">
+              <p>Henüz talep bulunmuyor</p>
+              <button 
+                className="create-ticket-button"
+                onClick={() => navigate('/tickets/create')}
+              >
+                Yeni Talep Oluştur
+              </button>
+            </div>
+          }
+          progressComponent={
+            <div className="loading">
+              <FontAwesomeIcon icon={faSpinner} spin />
+              <span>Yükleniyor...</span>
+            </div>
+          }
+          customStyles={customStyles}
+        />
+      </div>
 
       <AssignTicketModal
         isOpen={showAssignModal}
