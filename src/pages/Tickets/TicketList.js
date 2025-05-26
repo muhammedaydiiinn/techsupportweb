@@ -276,7 +276,6 @@ const TicketList = () => {
     try {
       const response = await ticketService.updateTicketStatus(ticketId, newStatus);
       if (response.success) {
-        toast.success('Talep durumu güncellendi');
         fetchTickets(currentPage);
       } else {
         toast.error(response.message || 'Durum güncellenirken bir hata oluştu');

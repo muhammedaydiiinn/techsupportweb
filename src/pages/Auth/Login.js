@@ -34,7 +34,6 @@ const Login = () => {
       const result = await login(email, password);
       
       if (result.success) {
-        toast.success('Giriş başarılı!');
         navigate(from, { replace: true });
       } else {
         setError(result.message || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.');

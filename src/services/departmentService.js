@@ -2,17 +2,17 @@ import axiosInstance from './axiosConfig';
 
 // Departman tipleri enum
 export const departmentTypes = [
-  { value: "it", label: "Bilgi Teknolojileri" },
-  { value: "hr", label: "İnsan Kaynakları" },
-  { value: "finance", label: "Finans" },
-  { value: "marketing", label: "Pazarlama" },
-  { value: "sales", label: "Satış" },
-  { value: "operations", label: "Operasyon" },
-  { value: "customer_service", label: "Müşteri Hizmetleri" },
-  { value: "legal", label: "Hukuk" },
-  { value: "research", label: "Araştırma" },
-  { value: "development", label: "Geliştirme" },
-  { value: "other", label: "Diğer" }
+  { value: "IT", label: "Bilgi Teknolojileri" },
+  { value: "HR", label: "İnsan Kaynakları" },
+  { value: "FINANCE", label: "Finans" },
+  { value: "MARKETING", label: "Pazarlama" },
+  { value: "SALES", label: "Satış" },
+  { value: "OPERATIONS", label: "Operasyon" },
+  { value: "CUSTOMER_SERVICE", label: "Müşteri Hizmetleri" },
+  { value: "LEGAL", label: "Hukuk" },
+  { value: "RESEARCH", label: "Araştırma" },
+  { value: "DEVELOPMENT", label: "Geliştirme" },
+  { value: "OTHER", label: "Diğer" }
 ];
 
 const departmentService = {
@@ -64,7 +64,7 @@ const departmentService = {
       
       // Eğer department_type belirtilmişse küçük harfe çevir, yoksa 'other' kullan
       if (data.department_type) {
-        data.department_type = data.department_type.toLowerCase();
+        data.department_type = data.department_type;
       } else {
         data.department_type = 'other';
       }
@@ -87,7 +87,7 @@ const departmentService = {
       
       // Eğer department_type belirtilmişse küçük harfe çevir
       if (data.department_type) {
-        data.department_type = data.department_type.toLowerCase();
+        data.department_type = data.department_type;
       }
       
       // Departman güncelle
