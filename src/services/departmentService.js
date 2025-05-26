@@ -61,14 +61,7 @@ const departmentService = {
     try {
       // department_type değerinin geçerli bir enum değeri olduğundan emin ol
       const data = { ...departmentData };
-      
-      // Eğer department_type belirtilmişse küçük harfe çevir, yoksa 'other' kullan
-      if (data.department_type) {
-        data.department_type = data.department_type;
-      } else {
-        data.department_type = 'other';
-      }
-      
+     
       
       // Departman oluştur (admin prefix'i olabilir veya olmayabilir - backend yapısına bağlı)
       const response = await axiosInstance.post('departments', data);
@@ -86,9 +79,7 @@ const departmentService = {
       const data = { ...departmentData };
       
       // Eğer department_type belirtilmişse küçük harfe çevir
-      if (data.department_type) {
-        data.department_type = data.department_type;
-      }
+     
       
       // Departman güncelle
       const response = await axiosInstance.put(`departments/${id}`, data);
