@@ -2,10 +2,10 @@ import axiosInstance from './axiosConfig';
 
 // Kullanıcı rolleri enum
 export const userRoles = [
-  { value: 'admin', label: 'Yönetici' },
-  { value: 'user', label: 'Kullanıcı' },
-  { value: 'support', label: 'Destek Personeli' },
-  { value: 'department_manager', label: 'Departman Yöneticisi' }
+  { value: 'ADMIN', label: 'Yönetici' },
+  { value: 'USER', label: 'Kullanıcı' },
+  { value: 'SUPPORT', label: 'Destek Personeli' },
+  { value: 'DEPARTMENT_MANAGER', label: 'Departman Yöneticisi' }
 ];
 
 const userService = {

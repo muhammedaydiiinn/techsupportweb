@@ -44,7 +44,7 @@ const TicketList = () => {
     return (
       <div style={{
         ...style,
-        padding: '0.35rem 0.75rem',
+        padding: '0.35rem 0.55rem',
         borderRadius: '9999px',
         fontSize: '0.875rem',
         fontWeight: '500',

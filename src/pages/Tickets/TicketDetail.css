@@ -359,23 +359,20 @@
 
   .action-buttons {
     width: 100%;
-    justify-content: flex-start;
-    margin-top: 0.5rem;
+    justify-content: space-between;
   }
-  
+
   .action-buttons button {
-    flex: 1;
-    min-width: 0;
-    justify-content: center;
     padding: 0.5rem;
+    min-width: auto;
   }
-  
+
   .action-buttons button span {
     display: none;
   }
 
   .ticket-detail-content {
-    padding: 1rem;
+    padding: 1.25rem;
   }
 
   .ticket-meta {
@@ -392,6 +389,113 @@
   }
 
   .timeline-date {
-    min-width: auto;
+    min-width: 100%;
   }
-} 
+  
+  /* Responsive ticket images */
+  .ticket-images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .ticket-image {
+    height: 130px;
+  }
+  
+  .ticket-image-info {
+    padding: 0.5rem;
+  }
+}
+
+/* Talep Resimleri Bölümü */
+.ticket-images-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ticket-images-section h2 {
+  display: flex;
+  align-items: center;
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin-bottom: 1.25rem;
+}
+
+.ticket-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.ticket-image-item {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ticket-image-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-image-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ticket-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.ticket-image-info {
+  padding: 0.75rem;
+  background-color: #f7fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ticket-image-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2d3748;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticket-image-date {
+  font-size: 0.75rem;
+  color: #718096;
+}
+
+.no-images {
+  padding: 2rem;
+  text-align: center;
+  background-color: #f7fafc;
+  border-radius: 0.5rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: #718096;
+}
+
+.loading-spinner svg {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}

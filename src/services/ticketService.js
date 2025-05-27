@@ -29,6 +29,28 @@ const ticketService = {
       };
     }
   },
+  // Resimleri getir
+  getTicketImages: async (ticketId) => {
+    try {
+      if (!ticketId) {
+        throw new Error('Geçersiz talep ID');
+      }
+
+      const response = await axiosInstance.get(`/tickets/${ticketId}/images/`);
+      
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error('Talep resimleri getirilirken hata:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Talep resimleri getirilirken bir hata oluştu',
+        error: error.response?.data || error.message
+      };
+    }
+  },
   // Son destek taleplerini getir
   getRecentTickets: async () => {
     try {
@@ -491,12 +513,7 @@ const ticketService = {
       // Başarılı yanıt kontrolü
       if (response.status === 200) {
         // Activity log oluştur
-        await ticketService.createActivityLog(
-          ticketId,
-          'support_level_changed',
-          `Destek seviyesi ${SupportLevelLabels[supportLevel]} olarak güncellendi`
-        );
-
+    
         return {
           success: true,
           data: response.data
@@ -569,27 +586,6 @@ const ticketService = {
       };
     }
   },
-
-  // Activity log oluştur
-  createActivityLog: async (ticketId, activityType, description) => {
-    try {
-      const response = await axiosInstance.post(`/tickets/${ticketId}/activity-log`, {
-        activity_type: activityType,
-        description: description
-      });
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      console.error('Activity log oluşturulurken hata:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Activity log oluşturulurken bir hata oluştu',
-        error: error.response?.data || error.message
-      };
-    }
-  }
 };
 
 export { ticketService };

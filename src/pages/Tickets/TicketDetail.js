@@ -8,7 +8,8 @@ import {
   faUserPlus,
   faTrash,
   faExclamationCircle,
-  faHistory
+  faHistory,
+  faImage
 } from '@fortawesome/free-solid-svg-icons';
 import { ticketService } from '../../services/ticketService';
 import { departmentService } from '../../services/departmentService';
@@ -34,6 +35,8 @@ const TicketDetail = () => {
   const [loadingAiResponses, setLoadingAiResponses] = useState(false);
   const [timeline, setTimeline] = useState([]);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [ticketImages, setTicketImages] = useState([]);
+  const [loadingImages, setLoadingImages] = useState(false);
 
   // Değerleri güvenli bir şekilde görüntülemek için yardımcı fonksiyon
   const safeRender = (value, defaultValue = 'Bilinmiyor') => {
@@ -102,6 +105,19 @@ const TicketDetail = () => {
         const timelineResult = await ticketService.getTicketTimeline(ticketId);
         if (timelineResult.success) {
           setTimeline(timelineResult.data);
+        }
+        
+        // Resimleri getir
+        try {
+          setLoadingImages(true);
+          const imagesResult = await ticketService.getTicketImages(ticketId);
+          if (imagesResult.success) {
+            setTicketImages(imagesResult.data);
+          }
+        } catch (err) {
+          console.error('Talep resimleri yüklenirken hata:', err);
+        } finally {
+          setLoadingImages(false);
         }
       } else {
         setError(result.message || 'Talep verisi alınamadı');
@@ -406,11 +422,13 @@ const TicketDetail = () => {
                   'Güncelleme yok'}
               </span>
             </div>
+            
             <div className="info-item">
               <label>Destek Seviyesi:</label>
+              
               {user && (user.role === 'admin' || user.role === 'support') ? (
                 <select
-                  value={ticket.support_level}
+                  value={ticket.current_support_level || ticket.support_level}
                   onChange={(e) => handleSupportLevelChange(e.target.value)}
                   className="support-level-select"
                 >
@@ -421,10 +439,11 @@ const TicketDetail = () => {
                   ))}
                 </select>
               ) : (
+                
                 <span>
-                  {SupportLevelLabels[ticket.support_level]}
+                  {SupportLevelLabels[ticket.current_support_level || ticket.support_level]}
                   <small className="support-level-description">
-                    {SupportLevelDescriptions[ticket.support_level]}
+                    {SupportLevelDescriptions[ticket.current_support_level || ticket.support_level]}
                   </small>
                 </span>
               )}
@@ -463,6 +482,49 @@ const TicketDetail = () => {
           <div className="ticket-description">
             <h2>Açıklama</h2>
             <p>{safeRender(ticket.description)}</p>
+          </div>
+          
+          {/* Ticket Resimleri Bölümü */}
+          <div className="ticket-images-section">
+            <h2>
+              <FontAwesomeIcon icon={faImage} style={{ marginRight: '8px' }} />
+              Talep Resimleri
+            </h2>
+            {loadingImages ? (
+              <div className="loading-spinner">
+                <FontAwesomeIcon icon={faSpinner} spin />
+                <span>Resimler yükleniyor...</span>
+              </div>
+            ) : ticketImages.length > 0 ? (
+              <div className="ticket-images-grid">
+                {ticketImages.map((image, index) => (
+                  <div key={index} className="ticket-image-item">
+                    <a 
+                      href={image.file_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ticket-image-link"
+                    >
+                      <img 
+                        src={image.file_url} 
+                        alt={image.description || `Resim ${index + 1}`} 
+                        className="ticket-image"
+                      />
+                      <div className="ticket-image-info">
+                        <span className="ticket-image-name">{image.file_name}</span>
+                        <span className="ticket-image-date">
+                          {new Date(image.created_at).toLocaleString('tr-TR')}
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-images">
+                Herhangi bir resim eklenmemiş.
+              </div>
+            )}
           </div>
 
           {/* Yapay Zeka Yanıtları Bölümü */}

@@ -170,7 +170,7 @@ const Dashboard = () => {
       </div>
 
       {/* Departman İstatistikleri Bölümü - Sadece admin ve support kullanıcılarına gösterilir */}
-      {(user?.role === 'admin' || user?.role === 'support') && departmentStats.length > 0 && (
+      {(user?.role === 'ADMIN' || user?.role === 'SUPPORT') && departmentStats.length > 0 && (
         <div className="stats-section">
           <div className="section-header">
             <h2>Departman İstatistikleri</h2>

@@ -70,7 +70,7 @@ const EditTicket = () => {
           }
           
           // Kullanıcıları getir (yetki varsa)
-          if (user.role === 'admin' || user.role === 'support') {
+          if (user.role === 'ADMIN' || user.role === 'SUPPORT') {
             const userResponse = await userService.getAllUsers();
             
             if (userResponse && userResponse.data) {
@@ -307,7 +307,7 @@ const EditTicket = () => {
             {departments.length === 0 && !loading && <div className="info-message">Departman bulunamadı</div>}
           </div>
 
-          {(user.role === 'admin' || user.role === 'support') && (
+          {(user.role === 'ADMIN' || user.role === 'SUPPORT') && (
             <div className="form-group">
               <label htmlFor="assigned_to_id">Atanmış Kişi</label>
               <select
