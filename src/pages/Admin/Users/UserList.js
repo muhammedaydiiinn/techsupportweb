@@ -324,7 +324,7 @@ const UserList = () => {
                       </select>
                     ) : (
                       <span className={`role-badge ${userData.role}`}>
-                        {(userData.role || '').toUpperCase() === 'ADMIN' ? 'Admin' : 'Kullanıcı'}
+                        {(userData.role || '').toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER'}
                       </span>
                     )}
                   </td>
