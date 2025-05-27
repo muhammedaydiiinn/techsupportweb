@@ -499,3 +499,57 @@
   margin-bottom: 0.5rem;
   font-size: 1.5rem;
 }
+
+.ai-responses-section {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.ai-responses-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  color: #555;
+}
+
+.ai-responses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+.ai-response-content {
+  font-size: 1rem;
+  color: #333;
+  white-space: pre-wrap;
+}
+
+.ai-response-timestamp {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #888;
+  text-align: right;
+}
+
+.no-ai-responses {
+  font-size: 1rem;
+  color: #777;
+  text-align: center;
+  padding: 20px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

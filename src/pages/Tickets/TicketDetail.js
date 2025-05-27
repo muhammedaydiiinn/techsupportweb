@@ -528,30 +528,32 @@ const TicketDetail = () => {
           </div>
 
           {/* Yapay Zeka Yanıtları Bölümü */}
-          <div className="ai-responses-section">
-            <h2>Yapay Zeka Yanıtları</h2>
-            {loadingAiResponses ? (
-              <div className="loading-spinner">
-                <FontAwesomeIcon icon={faSpinner} spin />
-                <span>Yapay zeka yanıtları yükleniyor...</span>
-              </div>
-            ) : aiResponses.length > 0 ? (
-              <div className="ai-responses-list">
-                {aiResponses.map((response, index) => (
-                  <div key={index} className="ai-response-item">
-                    <div className="ai-response-content">{response.content}</div>
-                    <div className="ai-response-timestamp">
-                      {new Date(response.created_at).toLocaleString('tr-TR')}
-                    </div>
+       <div className="ai-responses-section">
+          <h2>Yapay Zeka Yanıtları</h2>
+          {loadingAiResponses ? (
+            <div className="loading-spinner">
+              <FontAwesomeIcon icon={faSpinner} spin />
+              <span>Yapay zeka yanıtları yükleniyor...</span>
+            </div>
+          ) : aiResponses.length > 0 ? (
+            <div className="ai-responses-list">
+              {aiResponses.map((response, index) => (
+                <div key={index} className="ai-response-item">
+                  <div className="ai-response-content">{response.content}</div>
+                  <div className="ai-response-timestamp">
+                    {new Date(response.created_at).toLocaleString('tr-TR')}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="no-ai-responses">
-                Henüz yapay zeka yanıtı bulunmamaktadır.
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-ai-responses">
+              Henüz yapay zeka yanıtı bulunmamaktadır.
+            </div>
+          )}
+        </div>
+
+
         </div>
       </div>
 
